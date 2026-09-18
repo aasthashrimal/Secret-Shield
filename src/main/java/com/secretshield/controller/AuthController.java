@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.secretshield.dto.LoginRequest;
+import com.secretshield.dto.LoginResponse;
 import com.secretshield.dto.RegisterRequest;
 import com.secretshield.dto.RegisterResponse;
 import com.secretshield.entity.User;
@@ -18,15 +20,15 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
+        private final AuthService authService;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
+        public AuthController(AuthService authService) {
+                this.authService = authService;
+        }
 
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(
-            @Valid @RequestBody RegisterRequest request) {
+        @PostMapping("/register")
+        public ResponseEntity<RegisterResponse> register(
+                @Valid @RequestBody RegisterRequest request) {
 
         User user = authService.register(
                 request.username(),
@@ -44,5 +46,17 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
-    }
+        }
+
+        @PostMapping("/login")
+        public ResponseEntity<LoginResponse> login(
+                @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse response = authService.login(
+                request.email(),
+                request.password()
+        );
+
+        return ResponseEntity.ok(response);
+}
 }
