@@ -32,6 +32,10 @@ public class SecurityConfig {
             JsonSecurityErrorHandler errorHandler) throws Exception {
 
         http
+                .cors(org.springframework.security.config.Customizer.withDefaults())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable())
                 .csrf(csrf -> csrf.disable())
 
                 .exceptionHandling(errors -> errors

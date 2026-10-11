@@ -64,7 +64,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtService.isTokenValid(token)) {
                 String email = jwtService.extractUsername(token);
-                user = email == null || email.isBlank() ? null : userRepository.findByEmail(email).orElse(null);
+                user = email == null || email.isBlank() ? null : userRepository
+                        .findByEmail(email.strip().toLowerCase(java.util.Locale.ROOT)).orElse(null);
             }
         } catch (JwtException | IllegalArgumentException ex) {
             // A token can expire between the validation and claims reads.

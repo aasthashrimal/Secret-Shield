@@ -47,9 +47,8 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Nullable until M01.2 backfills existing users; new/updated rows always get a value.
     @Setter(AccessLevel.NONE)
-    @Column
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist

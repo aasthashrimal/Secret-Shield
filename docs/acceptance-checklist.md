@@ -1,0 +1,27 @@
+# Final project acceptance evidence
+
+This is a checklist for the complete synopsis, not a claim that later modules
+exist. Member 1 maintains Modules 0/1 alone; GitHub collaboration is deferred.
+Use only synthetic secret fixtures. Record tool/version, commit, commands, expected
+and actual outcomes, and sanitized evidence; omit secrets, tokens and raw reports.
+
+| Outcome | Required final evidence | Current status |
+| --- | --- | --- |
+| Reproducible backend foundation | Java 21 compile/start, unit suite, isolated PostgreSQL suite, fresh/legacy migration preservation | M00/M01/M02; 45 unit and 70 full tests verified |
+| Authentication and roles | Registration/login/me, invalid/expired tokens, developer/admin negative access tests | M02 verified (including JWT expiry/tampering and /me); roles/authorization M03 pending |
+| Repository and scan management | Two-user ownership, validated metadata, scan transitions, idempotent CI result ingestion | M04/M05 pending |
+| Credential detection | Pinned real Gitleaks runs for clean/synthetic-secret/error fixtures; safe normalized outputs | M06/M07 pending |
+| Severity and findings | Deterministic mapping/fallback, retained occurrences, authorized filters, no raw secret fields | M07 pending |
+| Automated GitHub scanning | Push/PR starts scanner for the correct branch/commit; authenticated sanitized submission | M12 pending |
+| Security gate | Clean exact commit allowed; finding/error/timeout/missing result blocks; pipeline cannot bypass on API outage | M09/M12 pending |
+| Dashboard | Live authorized repository/scan/finding/incident views, filters, empty/loading/error states | M11 pending |
+| Incident lifecycle | OPEN/RESOLVED/IGNORED reasons, concurrency checks, recurrence/reopening, review does not bypass gate | M08 pending |
+| Audit and history | Append-only typed actor/repository events, ordered authorized views, no confidential payloads | M08/M11 pending |
+| High-risk notifications | Azure Communication Services synthetic HIGH/CRITICAL alert, safe recipient configuration, retries/dedup, retained delivery status | M10 pending |
+| Containers | Reproducible image/full-stack startup, migrations, restart persistence, no secrets copied to image | M13 pending |
+| Azure infrastructure | Reviewed Terraform plan/state protection, documented resources and HTTPS access | M14/M15 pending |
+| Deployment and operations | Correct image/commit deployed, readiness/configuration, alerts/log redaction, rollback evidence | M15 pending |
+| Final demonstration/report | Clean run plus blocked synthetic-secret run, dashboard/history/notification proof, limitations documented | M16 pending |
+
+GitHub settings and second-machine reproduction require their own evidence when
+resumed; they are not prerequisites for the currently authorized solo foundation work.

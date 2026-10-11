@@ -9,6 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.secretshield.entity.User;
 import com.secretshield.exception.ConflictException;
+import com.secretshield.exception.DuplicateUserException;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.sql.SQLException;
 import com.secretshield.repository.UserRepository;
 import com.secretshield.security.JwtService;
 
@@ -43,5 +46,22 @@ class AuthServiceConflictTests {
                 () -> service.register("tester", "test@example.invalid", "synthetic-password"));
         verify(users, never()).save(any(User.class));
         verify(passwords, never()).encode(any());
+    }
+
+    @Test void uniqueConstraintRaceUsesExplicitDuplicateException() {
+        when(passwords.encode(any())).thenReturn("synthetic-hash");
+        when(users.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException(
+                "synthetic private database detail", new SQLException("synthetic-private-detail", "23505")));
+        assertThrows(DuplicateUserException.class,
+                () -> service.register("tester", " TEST@EXAMPLE.INVALID ", "synthetic-password"));
+        verify(users).existsByEmail("test@example.invalid");
+    }
+
+    @Test void otherIntegrityFailuresAreNotReportedAsDuplicates() {
+        when(passwords.encode(any())).thenReturn("synthetic-hash");
+        when(users.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException(
+                "synthetic private detail", new SQLException("synthetic-private-detail", "23502")));
+        assertThrows(DataIntegrityViolationException.class,
+                () -> service.register("tester", "test@example.invalid", "synthetic-password"));
     }
 }

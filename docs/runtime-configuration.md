@@ -1,105 +1,50 @@
 # Runtime configuration and liveness
 
-M01.4 adds automatic user timestamps, an explicit Open EntityManager in View policy,
-local/test configuration, and a public liveness endpoint. Database migrations and
-isolated database test execution remain M01.2 and M01.5.
+The default profile is local. Shared configuration contains environment references
+only. `.env` is ignored and is not loaded automatically by Spring Boot;
+`scripts/start-local.ps1` privately loads its four core backend values plus optional FRONTEND_ORIGIN.
+See [local setup](local-setup.md).
 
-## Profiles and environment
-
-The default profile is `local`. Its checked-in `application-local.yml` contains only
-shared settings and environment references. Put private credentials in process
-environment variables, not in this file. `.env` is still ignored and is not loaded
-automatically by Spring Boot. The exact shared classpath profile file is exempted
-from `.gitignore`; machine-specific `application-local.yml` files elsewhere stay ignored.
-
-| Configuration | Database | Schema policy | JWT secret |
+| Profile | Database | Schema policy | JWT secret |
 | --- | --- | --- | --- |
-| `local` (default) | `DB_URL` and `DB_USERNAME` have the existing localhost/postgres defaults; `DB_PASSWORD` is required | Existing `update` behavior, pending M01.2 | Required `JWT_SECRET` |
-| `test` (test classpath only) | Required `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD`; no fallback to development `DB_*` | `none`; no automatic schema changes | Synthetic test-only value; Spring tests pin this property to avoid shell overrides |
-| Other explicitly selected profiles | Required `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Common default `none` | Required `JWT_SECRET` |
+| local (default) | DB_URL/DB_USERNAME have localhost/postgres defaults; DB_PASSWORD required | Flyway migrations, Hibernate validate | Required JWT_SECRET |
+| test (test classpath) | Dedicated TEST_DB_* with no development fallback; disposable marker guard | Flyway migrations, Hibernate validate | Synthetic pinned test-only value |
+| Other explicit profiles | Required DB_URL/DB_USERNAME/DB_PASSWORD | Flyway migrations, Hibernate validate | Required JWT_SECRET |
 
-To select local configuration explicitly when starting from a configured PowerShell terminal:
+Deployment must select/configure its own profile. No deployment configuration is
+introduced in Modules 0/1. Flyway baseline-on-migrate is false, clean is disabled,
+and adoption is false by default. See [migration procedures](database-migrations.md).
 
-```powershell
-.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=local'
-```
+`spring.jpa.open-in-view` is false. Persistence work and lazy loading belong inside
+service transactions; controllers return safe DTOs. JDBC timezone is UTC and SQL
+logging is disabled. JPA @PrePersist sets createdAt/updatedAt to the same UTC value;
+@PreUpdate changes only updatedAt. Neither timestamp has a public setter and
+createdAt is not updatable by Hibernate. Bulk SQL/JPQL bypass these callbacks.
 
-Deployment must select its own profile explicitly; the default is for local development.
-No deployment profile or database migration is introduced by this step.
-Profile loading follows [Spring Boot profile configuration](https://docs.spring.io/spring-boot/reference/features/profiles.html).
+Storage remains TIMESTAMP(6) WITHOUT TIME ZONE, represented by LocalDateTime.
+V2 backfills missing updated_at from created_at and enforces NOT NULL. Historical
+creation values are preserved without guessing their timezone. New timestamps are UTC;
+future timestamp DTOs must emit ISO-8601 UTC with Z as specified in the API contract.
 
-`spring.jpa.open-in-view` is explicitly `false` in common configuration and tests.
-Persistence work and any required lazy loading belong inside service transactions;
-controllers should return safe DTOs. Hibernate's JDBC timezone is UTC and SQL logging
-remains disabled.
+Public GET /api/health/live returns 200 and only `{"status":"UP"}`. It does not
+query the database/JWT/scanner or disclose dependency/configuration details. The
+JWT filter skips this exact GET, including requests with a malformed bearer value
+and requests under a servlet context path. Neighboring paths/methods remain protected.
+This is process liveness; complete startup still requires valid DB/JWT configuration.
+GET /api/health requires authentication.
 
-## User timestamps
+## Verification - 11 October 2026
 
-JPA `@PrePersist` initializes `createdAt` and `updatedAt` to the same UTC time.
-`@PreUpdate` refreshes only `updatedAt`. Registration no longer assigns timestamps.
-`createdAt` is not updatable by Hibernate; neither timestamp has a public setter.
+Java 21 compile succeeded; all 40 database-independent and all 52 full disposable
+PostgreSQL tests passed. Tests cover MVC/security errors, precise liveness matching,
+profile isolation, UTC lifecycle persistence, registration/login, BCrypt storage,
+valid JWT access, conflicts and migration preservation. See [testing](testing.md).
 
-The existing `LocalDateTime` storage type is retained. New values represent UTC;
-this step does not reinterpret historical timestamps recorded in local time.
-`updatedAt` is nullable so local Hibernate schema updates can add it without losing
-existing rows. Legacy rows receive an update timestamp on their next JPA update;
-backfill and final constraints belong to M01.2. JPA callbacks do not cover bulk SQL
-or JPQL updates, which should not be used to bypass this lifecycle policy.
+Real local startup through the backup/adoption helper succeeded. The supported
+existing schema was baselined and migrated; a nonempty logical backup was retained
+privately under ignored target/database-backups. All seven checks in check-local.ps1
+passed; no users were created or changed by smoke requests. The temporary application
+was stopped afterwards. Earlier M01.4 verification used Hibernate update; that policy
+has now been replaced by versioned migrations and validation.
 
-## Liveness
-
-Public `GET /api/health/live` returns HTTP 200 and only:
-
-```json
-{"status":"UP"}
-```
-
-It performs no database, JWT, scanner, or external-service checks and discloses no
-versions, credentials, configuration, or dependency details. The JWT filter skips
-this exact GET route, including when a bearer header is supplied. Other methods and
-neighboring paths do not inherit this permission. It also works under a servlet context path.
-
-This is process liveness, not database readiness. Full application startup still
-requires valid database/JWT configuration. `/api/health` retains its existing protected
-behavior, and all other protected routes continue to require authentication.
-
-## Verification
-
-```powershell
-.\mvnw.cmd -o '-Dtest=ApiErrorHandlingTests,AuthServiceConflictTests,LivenessTests,UserTimestampTests,ProfileConfigurationTests' test
-```
-
-All 36 focused tests passed on 11 October 2026 using Java 26.0.2 and the existing
-Java 21 compilation target. They cover timestamp callback behavior, default local
-configuration, test configuration without development-variable fallback, disabled
-Open EntityManager in View, exact liveness output and database/JWT independence,
-and protected-route/error-response regression checks. `git diff --check` also passed.
-
-The original `SecretShieldApplicationTests` now explicitly selects `test`, so it
-requires dedicated `TEST_DB_*` inputs. It was not run in this step. No development
-database was started or modified during those focused tests, and callback persistence/database startup integration
-has not yet been verified; that requires the isolated database setup in M01.5.
-
-## Additional local smoke check — 11 October 2026
-
-After the local JWT secret was replaced, reran all 36 focused tests successfully.
-Confirmed `.env` is ignored/untracked and the private signing key meets the current
-32-byte minimum without printing its value. The inherited process JWT setting did
-not match `.env`; temporary startup explicitly loaded the four approved backend
-variables from the private file, without printing them.
-
-An initial startup with schema updates disabled succeeded, but a read-only login
-for a synthetic nonexistent user returned 500: PostgreSQL reported missing
-`updated_at` (SQLState `42703`). Normal local startup using the existing `update`
-setting then synchronized the schema; the same login check returned the expected
-JSON 401. This used the existing local schema-update path, not versioned migrations.
-No users were registered or modified by these checks.
-
-Live checks passed for minimal liveness (200, also with an invalid bearer header),
-protected health (401), malformed JSON (400), invalid email (400), and nonexistent-user
-login (401), with the documented JSON response shapes. Both temporary servers were
-stopped afterwards. Successful login, persisted timestamp behavior, real-token
-expiry/tampering, and the database-backed context test were not checked here.
-
-For future starts, update the terminal's `JWT_SECRET` as well as `.env`; changing
-the private file does not replace an already inherited environment variable.
+M02 follow-up: all 45 unit and 70 full tests pass, including expired/tampered JWTs, /me, CORS, removal of the in-memory user, real concurrent registration and 14 real HTTP script checks. V3 normalizes stored email with collision refusal. See [authentication policy](auth-session.md) and [manual checks](auth-manual-checks.md). Roles and resource authorization remain M03.

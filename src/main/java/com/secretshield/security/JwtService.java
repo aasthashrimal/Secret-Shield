@@ -19,9 +19,14 @@ public class JwtService {
     private final long expiration;
 
     public JwtService(
-            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.secret:}") String secret,
             @Value("${jwt.expiration}") long expiration) {
 
+        if (secret == null || secret.isBlank() || secret.getBytes(StandardCharsets.UTF_8).length < 32
+                || secret.contains("${")) {
+            throw new IllegalArgumentException("JWT_SECRET must be configured with at least 32 UTF-8 bytes");
+        }
+        if (expiration <= 0) { throw new IllegalArgumentException("JWT expiration must be positive"); }
         this.secretKey = Keys.hmacShaKeyFor(
                 secret.getBytes(StandardCharsets.UTF_8)
         );

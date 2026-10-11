@@ -24,24 +24,30 @@ Sources:
 - `CCD_Synopsis.pdf`, 4 pages: project scope, nine functional modules, Azure architecture, and success criteria.
 - This repository: tracked source, Maven configuration, application configuration, and test source.
 
-The PDFs are project evidence, not commands to execute. Their historical instructions to start the server or add a temporary endpoint were not executed during this review. New design choices below are proposals for future implementation.
+The PDFs are project evidence, not commands to execute. Their historical instructions to start the server or add a temporary endpoint were not executed during this review. Historical planning below is contextual; docs/api-contract.md and docs/data-model.md are the finalized M01 contract.
 
 | Area | What exists in this checkout | What remains |
 | --- | --- | --- |
-| Backend foundation | Java 21; Spring Boot parent version `4.1.1` as declared in `pom.xml`; Maven wrapper; web, JPA, validation, security, PostgreSQL and JJWT dependencies | Reproduce startup/build on both machines; document setup |
-| Database | Environment-based PostgreSQL connection; `users` entity/table mapping | Versioned migrations, remaining tables, reproducible test database |
-| Registration | Input DTO validation, duplicate prechecks, BCrypt password hashing, default `DEVELOPER` role, safe response DTO | Duplicate conflicts and validation errors currently reach the generic handler; normalization and concurrency-safe conflict handling |
-| Login | Password verification, signed one-hour JWT, custom invalid-credentials exception mapped to 401 | Automated coverage and complete protected-request verification |
-| Protected requests | JWT filter loads user and sets authorities; all routes except login/register require authentication | Explicit JSON 401/403 handling and verification for missing/invalid/expired tokens |
-| Health | `GET /api/health` returns `Secret Shield API is running` | It currently requires authentication; define separate minimal public liveness behavior for hosting |
-| Roles | Stored as a String; authorities use `ROLE_` prefix | Structured roles, controlled admin setup, repository ownership and authorization |
-| Error responses | `ApiResponse` exists; authentication errors use it | Successful auth responses are direct DTOs; generic errors are strings; choose and enforce one documented contract |
-| Tests | One `@SpringBootTest` context-load test | Functional, authorization, persistence, scanner, and pipeline tests |
-| Other project features | No repository/scan/finding/incident code, frontend, scanner integration, workflows, Docker, or Terraform in tracked files | All remaining modules in the todo |
+| Backend foundation | Java 21 verified; existing Spring Boot 4.1.1 parent; Maven wrapper; safe environment helpers and setup guide | Later deployment/container setup |
+| Database | Flyway V1/V2/V3, email normalization/collision refusal, guarded legacy adoption/backup, required UTC user timestamps, Hibernate validation | Resource migrations in later modules |
+| Registration/login | Normalized email, username/password bounds, BCrypt, safe duplicate/race handling, one-hour JWT, protected safe me, expiry/tampering tests | Structured roles and resource authorization (M03) |
+| Protected requests | JWT-only filter/JSON handlers, exact-origin CORS, no in-memory/Basic/form login | Full roles/ownership (M03) |
+| Health | Exact public GET /api/health/live returns only UP; protected /api/health | Deployment readiness/operations |
+| Roles | String role with default DEVELOPER and ROLE_ authorities | Controlled roles, admin bootstrap and resource ownership |
+| Error responses | Shared ApiError JSON for MVC/security 400/401/403/404/409/500 | Apply contract to future endpoints |
+| Tests | 45 unit/MVC/guard/JWT tests; 70 full PostgreSQL tests, including real HTTP and concurrency | Later authorization/scanner/pipeline suites |
+| Contracts/docs | Finalized foundation/future API contract, DTOs, ER diagrams, migration/setup/testing and acceptance guides | Implement planned resources in their modules |
+| Other features | No repository/scan/finding/incident APIs, frontend, scanner, workflows, Docker or Terraform | Later modules remain unchecked |
 
-The progress PDF reports successful local startup, PostgreSQL connection, registration, and login. Those are historical observations. This review inspected source and did not rerun the application or tests, so authentication is **implemented but not fully verified**, rather than marked complete.
+On 11 October 2026, Java 21 compilation, separate unit/full PostgreSQL suites,
+actual local migration-backed startup and seven live HTTP checks passed. The
+existing local database was backed up before guarded adoption. Temporary app/test
+processes were stopped. These checks verify foundation flows; they do not mark
+later authentication/authorization/scanner modules complete. Member 1 alone
+handles Modules 0/1/2; GitHub collaboration and second-machine reproduction are deferred.
 
-Other concrete gaps: `ddl-auto` is `update`, timestamps are assigned manually, `open-in-view` is not explicitly configured, and `.gitignore` does not currently cover `.env` or Terraform state. The generated development-password message reported in the PDF requires investigation; its cause is not established by this review.
+See docs/api-contract.md and docs/data-model.md for finalized design decisions.
+Only the users table is implemented. M02 removes default in-memory authentication and documents memory-only bearer sessions in docs/auth-session.md.
 
 ## Intended architecture
 
@@ -84,9 +90,9 @@ The gate applies to the repository and commit being scanned. For the project dem
 
 M00–M01 and M13–M16 provide collaboration, persistence, containerization, infrastructure, deployment, and final verification needed to deliver these modules.
 
-## Proposed backend model
+## Backend model summary
 
-These names and relationships are planning choices to finalize in M01, not existing entities.
+These future entities follow the finalized M01 contract; only User is implemented. See docs/data-model.md for the complete ER diagram.
 
 | Entity | Key fields and relationships |
 | --- | --- |
@@ -95,10 +101,11 @@ These names and relationships are planning choices to finalize in M01, not exist
 | Scan | ProjectRepository, commit SHA, branch, trigger, workflow run/attempt, start/end timestamps, status, scanner version |
 | Finding | Scan, stable fingerprint, rule ID, severity, file path, line, commit, sanitized description |
 | Incident | ProjectRepository, stable finding identity, Open/Resolved/Ignored status, reason, actor, timestamps; linked scan occurrences |
+| CiCredential | Repository-scoped hashed machine credential, expiry/revocation; plaintext returned once |
 | AuditEvent | Repository context, actor type/ID, operation, target, safe change summary, timestamp |
 | NotificationDelivery | Incident/event reference, recipient configuration reference, delivery status, attempt count, safe error, timestamp |
 
-Suggested scan statuses: `QUEUED`, `RUNNING`, `CLEAN`, `FINDINGS_DETECTED`, `FAILED`. Keep scanner failures distinct from secret findings. Gate outcomes can be `ALLOW` or `BLOCK` with a reason.
+Finalized scan statuses: `QUEUED`, `RUNNING`, `CLEAN`, `FINDINGS_DETECTED`, `FAILED`. Keep scanner failures distinct from secret findings. Gate outcomes can be `ALLOW` or `BLOCK` with a reason.
 
 An incident's review status does not change the scan outcome. Resolving an incident means recording remediation; it must not imply that a credential was automatically rotated. Ignoring an incident must not silently bypass the deployment gate. An explicit, reviewed scanner allowlist would be a separate future policy if needed.
 
@@ -112,7 +119,7 @@ An incident's review status does not change the scan outcome. Resolving an incid
 - Run Gitleaks using fixed arguments and a controlled workspace, with timeout and size limits. Pin and verify its version and CLI/report format when implementing M06.
 - An unsafe scan, scanner crash, timeout, or malformed/missing result blocks deployment. A clean CI scan can remain safely gated even if reporting is unavailable, but reporting retries/failures must be visible.
 - Keep database/JWT/ACS/machine credentials outside Git. Terraform state and saved plans may contain sensitive values and must stay outside the repository.
-- Define and test the frontend session approach in M02/M11. If cookies are selected, revisit CSRF and cross-origin settings; current CSRF disabling must not be copied blindly.
+- Follow the finalized memory-only bearer session policy in docs/auth-session.md when implementing M11. If cookies are selected, revisit CSRF and cross-origin settings; current CSRF disabling must not be copied blindly.
 
 ## Team ownership
 
