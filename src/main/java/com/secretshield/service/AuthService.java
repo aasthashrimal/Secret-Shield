@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.secretshield.dto.LoginResponse;
 import com.secretshield.entity.User;
 import com.secretshield.exception.AuthenticationException;
+import com.secretshield.exception.ConflictException;
 import com.secretshield.repository.UserRepository;
 import com.secretshield.security.JwtService;
 
@@ -29,11 +30,11 @@ public class AuthService {
     public User register(String username, String email, String password) {
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         if (userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username already taken");
+            throw new ConflictException("Username already taken");
         }
 
         String hashedPassword = passwordEncoder.encode(password);
@@ -43,7 +44,6 @@ public class AuthService {
                 .email(email)
                 .password(hashedPassword)
                 .role("DEVELOPER")
-                .createdAt(java.time.LocalDateTime.now())
                 .build();
 
         return userRepository.save(user);

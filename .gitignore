@@ -31,3 +31,76 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment and machine-specific configuration ###
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local.properties
+*.local.yml
+*.local.yaml
+application-local.properties
+application-local.yml
+application-local.yaml
+!application-local.properties.example
+!application-local.yml.example
+!application-local.yaml.example
+# Shared profile contains environment references only; machine overrides stay ignored.
+!/src/main/resources/application-local.yml
+/config/local/
+/.aws/
+/.azure/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+### Raw scanner output (may contain exposed secrets) ###
+/scanner-output/
+/scan-results/
+/reports/raw/
+gitleaks*.json
+gitleaks*.sarif
+gitleaks*.csv
+gitleaks*.log
+
+### Logs and runtime artifacts ###
+*.log
+*.log.*
+logs/
+*.pid
+*.hprof
+
+### Terraform local data, state, variables and saved plans ###
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+*.plan
+*.plan.json
+tfplan
+tfplan.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+terraform.rc
+.terraformrc
+crash.log
+crash.*.log
+# Keep .terraform.lock.hcl tracked for reproducible provider versions.
+
+### Generated frontend files (keep manifests and lockfiles tracked) ###
+node_modules/
+dist/
+coverage/
+.next/
+.nuxt/
+.output/
+.vite/
+.cache/
+*.tsbuildinfo
+vite.config.*.timestamp-*

@@ -1,0 +1,10 @@
+# Shared local profile. Supply private values via process environment variables.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/secret_shield_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # Temporary existing behavior; replace with migrations in M01.2.
+      ddl-auto: update

@@ -3,6 +3,8 @@ package com.secretshield.security;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,19 +18,30 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.JwtException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final JsonSecurityErrorHandler errorHandler;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            JsonSecurityErrorHandler errorHandler) {
 
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.errorHandler = errorHandler;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // Liveness must not depend on a bearer token or the user database.
+        return "GET".equals(request.getMethod())
+                && (request.getContextPath() + "/api/health/live").equals(request.getRequestURI());
     }
 
     @Override
@@ -47,14 +60,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        if (!jwtService.isTokenValid(token)) {
-            filterChain.doFilter(request, response);
+        User user = null;
+        try {
+            if (jwtService.isTokenValid(token)) {
+                String email = jwtService.extractUsername(token);
+                user = email == null || email.isBlank() ? null : userRepository.findByEmail(email).orElse(null);
+            }
+        } catch (JwtException | IllegalArgumentException ex) {
+            // A token can expire between the validation and claims reads.
+            SecurityContextHolder.clearContext();
+            errorHandler.commence(request, response,
+                    new org.springframework.security.authentication.BadCredentialsException("Invalid token"));
+            return;
+        } catch (org.springframework.dao.DataAccessException ex) {
+            SecurityContextHolder.clearContext();
+            errorHandler.write(response, HttpStatus.INTERNAL_SERVER_ERROR);
             return;
         }
-
-        String email = jwtService.extractUsername(token);
-
-        User user = userRepository.findByEmail(email).orElse(null);
 
         if (user == null) {
             filterChain.doFilter(request, response);
