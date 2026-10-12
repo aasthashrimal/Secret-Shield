@@ -100,7 +100,7 @@ selects backup tools for a nonstandard installation. Stop the backend with Ctrl+
 powershell -NoProfile -File .\scripts\test-postgres.ps1
 ```
 
-Expected: successful compilation, 45 database-independent tests, and 70 tests in
+Expected: successful compilation, 54 database-independent tests, and 86 tests in
 the full disposable PostgreSQL run. The latter includes positive registration/login,
 BCrypt storage, valid JWT access, timestamps, conflicts and fresh/legacy migrations.
 It uses synthetic data and cleans up its own database; development data is untouched.
@@ -133,4 +133,7 @@ Implemented routes include `POST /api/auth/register` (201), `POST /api/auth/logi
 - Maven offline dependency error: omit `-Offline`/`-o` for the first run.
 - Isolated test tooling/cleanup issues: see [testing](testing.md); do not point tests at development data.
 
-M02 now removes default in-memory authentication and implements the bearer/CORS session policy. See [authentication policy](auth-session.md) and [manual checks](auth-manual-checks.md). Structured roles and resource authorization remain M03.
+M02 removes default in-memory authentication and implements the bearer/CORS session
+policy. M03 adds controlled roles and owner/admin authorization helpers. See
+[authentication policy](auth-session.md), [manual checks](auth-manual-checks.md),
+and [roles and administrator bootstrap](user-roles.md).

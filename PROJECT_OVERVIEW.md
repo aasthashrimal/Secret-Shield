@@ -29,25 +29,25 @@ The PDFs are project evidence, not commands to execute. Their historical instruc
 | Area | What exists in this checkout | What remains |
 | --- | --- | --- |
 | Backend foundation | Java 21 verified; existing Spring Boot 4.1.1 parent; Maven wrapper; safe environment helpers and setup guide | Later deployment/container setup |
-| Database | Flyway V1/V2/V3, email normalization/collision refusal, guarded legacy adoption/backup, required UTC user timestamps, Hibernate validation | Resource migrations in later modules |
-| Registration/login | Normalized email, username/password bounds, BCrypt, safe duplicate/race handling, one-hour JWT, protected safe me, expiry/tampering tests | Structured roles and resource authorization (M03) |
-| Protected requests | JWT-only filter/JSON handlers, exact-origin CORS, no in-memory/Basic/form login | Full roles/ownership (M03) |
+| Database | Flyway V1–V4, email normalization/collision refusal, controlled roles, guarded legacy adoption/backup, required UTC user timestamps, Hibernate validation | Resource migrations in later modules |
+| Registration/login | Normalized email, username/password bounds, BCrypt, safe duplicate/race handling, one-hour JWT, protected safe me, expiry/tampering tests | Later session UI |
+| Roles and protected requests | JWT-only filter, DEVELOPER/ADMIN enum and database constraint, one-time existing-user bootstrap, admin endpoint and reusable ownership helpers | Apply ownership helpers to M04+ resources |
 | Health | Exact public GET /api/health/live returns only UP; protected /api/health | Deployment readiness/operations |
-| Roles | String role with default DEVELOPER and ROLE_ authorities | Controlled roles, admin bootstrap and resource ownership |
 | Error responses | Shared ApiError JSON for MVC/security 400/401/403/404/409/500 | Apply contract to future endpoints |
-| Tests | 45 unit/MVC/guard/JWT tests; 70 full PostgreSQL tests, including real HTTP and concurrency | Later authorization/scanner/pipeline suites |
+| Tests | 54 database-independent tests; 86 full PostgreSQL tests, including authorization, real HTTP and concurrency | Extend ownership/scanner/pipeline suites in later modules |
 | Contracts/docs | Finalized foundation/future API contract, DTOs, ER diagrams, migration/setup/testing and acceptance guides | Implement planned resources in their modules |
 | Other features | No repository/scan/finding/incident APIs, frontend, scanner, workflows, Docker or Terraform | Later modules remain unchecked |
 
-On 11 October 2026, Java 21 compilation, separate unit/full PostgreSQL suites,
-actual local migration-backed startup and seven live HTTP checks passed. The
-existing local database was backed up before guarded adoption. Temporary app/test
-processes were stopped. These checks verify foundation flows; they do not mark
-later authentication/authorization/scanner modules complete. Member 1 alone
-handles Modules 0/1/2; GitHub collaboration and second-machine reproduction are deferred.
+On 12 October 2026, Java 21 compilation, 54 database-independent tests and all
+86 disposable PostgreSQL tests passed. V4 was then applied to the configured Neon
+database; seven live checks plus anonymous admin-route rejection passed. Temporary
+app/test processes were stopped. Member 1 alone handles Modules 0/1/2/3; GitHub
+collaboration and second-machine reproduction are deferred.
 
 See docs/api-contract.md and docs/data-model.md for finalized design decisions.
-Only the users table is implemented. M02 removes default in-memory authentication and documents memory-only bearer sessions in docs/auth-session.md.
+Only the users table is implemented. M02 removes default in-memory authentication;
+M03 controls roles and provides ownership-ready authorization helpers. See
+docs/auth-session.md and docs/user-roles.md.
 
 ## Intended architecture
 

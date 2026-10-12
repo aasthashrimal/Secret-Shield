@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.secretshield.entity.User;
+import com.secretshield.entity.UserRole;
 import com.secretshield.repository.UserRepository;
 import com.secretshield.support.PostgresApiTest;
 
@@ -76,15 +77,15 @@ class ApiFoundationIT extends PostgresApiTest {
 
     @Test void realPostgresEnforcesUniqueEmail() {
         users.saveAndFlush(User.builder().username("synthetic-one").email("same@example.invalid")
-                .password("synthetic-hash-placeholder").role("DEVELOPER").build());
+                .password("synthetic-hash-placeholder").role(UserRole.DEVELOPER).build());
         assertThrows(DataIntegrityViolationException.class, () -> users.saveAndFlush(User.builder()
                 .username("synthetic-two").email("same@example.invalid")
-                .password("synthetic-hash-placeholder").role("DEVELOPER").build()));
+                .password("synthetic-hash-placeholder").role(UserRole.DEVELOPER).build()));
     }
 
     @Test void actualJpaUpdatePreservesCreationTimeAndRefreshesUpdateTime() {
         User stored = users.saveAndFlush(User.builder().username("synthetic-before")
-                .email("update@example.invalid").password("synthetic-hash-placeholder").role("DEVELOPER").build());
+                .email("update@example.invalid").password("synthetic-hash-placeholder").role(UserRole.DEVELOPER).build());
         entities.refresh(stored);
         LocalDateTime created = stored.getCreatedAt();
         LocalDateTime updated = stored.getUpdatedAt();

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.secretshield.dto.LoginResponse;
 import com.secretshield.entity.User;
+import com.secretshield.entity.UserRole;
 import com.secretshield.exception.AuthenticationException;
 import com.secretshield.exception.DuplicateUserException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -48,7 +49,7 @@ public class AuthService {
                 .username(username)
                 .email(email)
                 .password(hashedPassword)
-                .role("DEVELOPER")
+                .role(UserRole.DEVELOPER)
                 .build();
 
         try {
@@ -76,14 +77,14 @@ public class AuthService {
 
         String token = jwtService.generateToken(
                 user.getEmail(),
-                user.getRole()
+                user.getRole().name()
         );
 
         return new LoginResponse(
                 token,
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole().name()
         );
     }
 }

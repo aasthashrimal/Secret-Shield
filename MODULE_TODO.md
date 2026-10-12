@@ -4,7 +4,7 @@ Based on both project PDFs and the repository review dated 11 October 2026. Read
 
 **Member 1:** you. **Member 2:** your teammate.
 
-**Current scope override:** Member 1 alone implements all Module 0/1/2 setup, documentation and backend tasks. M00.2/M00.3 GitHub collaboration is explicitly deferred. Second-machine reproduction is outside this solo scope and remains unverified. Later-module assignments stay as planned.
+**Current scope override:** Member 1 alone implements all Module 0/1/2/3 setup, documentation and backend tasks. M00.2/M00.3 GitHub collaboration is explicitly deferred. Second-machine reproduction is outside this solo scope and remains unverified. Later-module assignments stay as planned.
 
 ## How to use this checklist
 
@@ -79,10 +79,10 @@ Depends on M01. Current registration/login/JWT code should be completed and veri
 
 Depends on M02.
 
-- [ ] **M03.1 — Member 1:** Replace free-form role Strings with controlled `DEVELOPER`/`ADMIN` values and migrate existing users. Add a controlled administrator bootstrap procedure. **Done when:** public registration cannot assign admin permissions.
-- [ ] **M03.2 — Member 1:** Define an access matrix: developers manage their own repository resources; admins have explicit cross-repository management rights. Implement reusable authorization helpers and protected admin endpoints only where needed. **Done when:** service/controller checks match the matrix.
-- [ ] **M03.3 — Member 1:** Add negative authorization tests, including nested-resource ownership and a developer attempting admin actions. Extend this suite when each resource module arrives. **Done when:** cross-user reads/writes are rejected consistently.
-- [ ] **M03.4 — Member 2:** Document the approved access matrix in `docs/user-roles.md` and prepare developer/admin dashboard labels. **Done when:** labels and examples match Member 1's contract.
+- [x] **M03.1 — Member 1:** Replace free-form role Strings with controlled `DEVELOPER`/`ADMIN` values and migrate existing users. Add a controlled administrator bootstrap procedure. **Done when:** public registration cannot assign admin permissions. **Verified 12 October 2026:** added `UserRole`, enum JPA mapping and V4 constraint/normalization with refusal for unknown historical roles. Public registration remains forced to DEVELOPER even when JSON submits ADMIN. Added explicit, disabled-by-default, existing-user-only `scripts/bootstrap-admin.ps1`; it restores temporary settings and exposes no public promotion API.
+- [x] **M03.2 — Member 1:** Define an access matrix: developers manage their own repository resources; admins have explicit cross-repository management rights. Implement reusable authorization helpers and protected admin endpoints only where needed. **Done when:** service/controller checks match the matrix. **Verified 12 October 2026:** `ResourceAuthorization` centralizes admin, owner-or-admin and nested repository checks for M04+ services. `/api/admin/**` requires ADMIN, and the narrow `GET /api/admin/users/{id}` endpoint repeats service authorization and returns only `UserSummary`. The finalized matrix is in `docs/user-roles.md`.
+- [x] **M03.3 — Member 1:** Add negative authorization tests, including nested-resource ownership and a developer attempting admin actions. Extend this suite when each resource module arrives. **Done when:** cross-user reads/writes are rejected consistently. **Verified 12 October 2026:** Java 21 suites passed 54 database-independent and 86 full PostgreSQL tests with zero failures/skips. Coverage includes developer 403, admin cross-user 200, anonymous 401, unknown admin lookup 404, cross-owner denial, nested-parent mismatch, database role constraint, bootstrap behavior, and migration normalization/refusal. Disposable PostgreSQL cleanup passed; M04+ must extend ownership tests per resource.
+- [x] **M03.4 — Member 1 (solo scope):** Document the approved access matrix in `docs/user-roles.md` and prepare developer/admin dashboard labels. **Done when:** labels and examples match Member 1's contract. **Verified 12 October 2026:** documented exact 401/403/404 ordering, current and future permissions, bootstrap commands, safe admin response, JWT/database authority behavior, and Developer/Administrator dashboard labels. Future UI implementation remains M11.
 
 ## M04 — Repository management
 
@@ -240,8 +240,11 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Start with **M00.1** to prepare safe collaboration files, then **M00.4** to reproduce the existing backend. Complete M01 before **M02.1**, the protected-request verification identified as the next technical milestone in `progress.pdf`. Member 2 can start M00.6 immediately and M00.5 once verified setup commands are available.
+Modules M00 (except deferred GitHub collaboration), M01, M02 and M03 are complete
+under the solo scope. The next implementation module is M04 repository management.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
-Module 02 completion record: M02.1-M02.6 implemented and verified by Member 1, including the original Member 2 documentation task. Current suites: 45 unit tests, 70 full tests. Module 03 and later implementation remains unchecked.
+Module 02 completion record: M02.1-M02.6 implemented and verified by Member 1, including the original Member 2 documentation task. Its completion suites had 45 unit tests and 70 full tests.
+
+Module 03 completion record (12 October 2026): M03.1-M03.4 implemented by Member 1 under the solo scope. Current suites pass 54 database-independent and 86 full tests. V4 also migrated the configured Neon database successfully; live smoke checks passed and the backend was stopped. M04 and later implementation remain unchecked.

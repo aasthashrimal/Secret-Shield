@@ -2,7 +2,7 @@
 
 Prepared by Member 1 on 11 October 2026 for M01.6.
 
-The implemented model below is checked against the Java entity, V1/V2/V3 migrations,
+The implemented model below is checked against the Java entity, V1–V4 migrations,
 DTOs, configuration, and PostgreSQL integration tests. The future model is the
 finalized M01.1 design in [api-contract.md](api-contract.md), based on the scope in
 [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) and [MODULE_TODO.md](../MODULE_TODO.md).
@@ -20,7 +20,7 @@ There are no application entity relationships or foreign keys yet.
 | `username` | `String` | Required and unique; registration checks duplicates before saving |
 | `email` | `String` | Required and unique; registration checks duplicates; M02 normalizes by trimming/lowercasing; V3 enforces canonical email and normalized uniqueness |
 | `password` | `String` | Required; stores a BCrypt hash, not the submitted password; omitted from response DTOs |
-| `role` | `String` | Required; public registration assigns `DEVELOPER`; enum/check constraint and controlled admin bootstrap remain M03.1 |
+| `role` | `UserRole` | Required `DEVELOPER` or `ADMIN`; V4 check constraint; public registration assigns DEVELOPER; controlled existing-user bootstrap only |
 | `createdAt` | `LocalDateTime` | Required; JPA `@PrePersist` assigns UTC; `updatable=false` prevents ordinary Hibernate updates |
 | `updatedAt` | `LocalDateTime` | Required after V2 backfill; initialized on persist and refreshed on JPA update |
 
@@ -34,7 +34,7 @@ erDiagram
         String username UK
         String email UK
         String password "BCrypt hash; never a response field"
-        String role "Currently a String"
+        UserRole role "DEVELOPER or ADMIN; V4 constrained"
         LocalDateTime createdAt "UTC; required; not updatable"
         LocalDateTime updatedAt "UTC; required after V2"
     }
@@ -73,7 +73,7 @@ names; Module 1 migrations deliberately create only users. `long`, `string`, and
 
 | Entity | Planned responsibility | Implementation step |
 | --- | --- | --- |
-| User | Repository owner and human actor; email normalization is implemented; controlled roles remain planned | Existing; email normalized in M02, roles in M03.1 |
+| User | Repository owner and human actor; normalized email and controlled role | Existing; email normalized in M02, roles constrained in M03 |
 | ProjectRepository | User-owned GitHub identity, canonical URL, default branch, active flag | M04.1 |
 | Scan | Repository/commit/run identity, scanner version, outcome, and timing | M05.1 |
 | Finding | One scan's sanitized occurrence, stable fingerprint, rule, severity, and safe location | M07.1 |
@@ -226,8 +226,11 @@ Member 1 checked the implemented field table/diagram against `User.java`, V1/V2
 migrations, `AuthService`, response records, and real PostgreSQL tests. The future
 diagram and invariants match the finalized API contract, including the incident
 link, machine credential actor model, notification event reference, and severity policy.
-Fresh/existing migration tests preserve users and backfill timestamps. Controlled roles remain future implementation; M02 now normalizes email.
+Fresh/existing migration tests preserve users and backfill timestamps. M02 normalizes
+email; M03 constrains and normalizes roles without silently promoting unknown values.
 DTO exposure omits hashes/secret material. No future resource table or API is claimed
 as implemented by this documentation; their migrations must maintain this contract.
 
-M02 adds V3 email normalization and collision refusal while retaining existing identities and hashes. GET /api/auth/me exposes only string id, username, normalized email and current String role. Role constraints remain M03.
+M02 adds V3 email normalization and collision refusal while retaining existing
+identities and hashes. M03 adds V4 and maps role to `UserRole`. GET /api/auth/me
+exposes only string id, username, normalized email and the controlled role.

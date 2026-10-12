@@ -26,6 +26,7 @@ import com.secretshield.config.SecurityConfig;
 import com.secretshield.controller.AuthController;
 import com.secretshield.dto.ApiError;
 import com.secretshield.entity.User;
+import com.secretshield.entity.UserRole;
 import com.secretshield.repository.UserRepository;
 import com.secretshield.security.JsonSecurityErrorHandler;
 import com.secretshield.security.JwtAuthenticationFilter;
@@ -134,7 +135,7 @@ class ApiErrorHandlingTests {
         when(jwtService.extractUsername("synthetic-token")).thenReturn("test@example.invalid");
         when(userRepository.findByEmail("test@example.invalid"))
                 .thenReturn(java.util.Optional.of(User.builder().email("test@example.invalid")
-                        .role("DEVELOPER").build()));
+                        .role(UserRole.DEVELOPER).build()));
         expectError(mvc.perform(get("/test/failure/not-found")
                 .header("Authorization", "Bearer synthetic-token")), 404);
     }
@@ -180,7 +181,7 @@ class ApiErrorHandlingTests {
     @Test void successResponseRemainsUnwrapped() throws Exception {
         when(authService.register("tester", "test@example.invalid", "synthetic-password"))
                 .thenReturn(User.builder().id(1L).username("tester").email("test@example.invalid")
-                        .role("DEVELOPER").build());
+                        .role(UserRole.DEVELOPER).build());
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"tester\",\"email\":\"test@example.invalid\",\"password\":\"synthetic-password\"}"))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.username").value("tester"))

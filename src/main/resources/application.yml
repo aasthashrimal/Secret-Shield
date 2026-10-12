@@ -32,6 +32,9 @@ spring:
 secretshield:
   database:
     adopt-existing: false
+  admin-bootstrap-enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
+  admin-bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}
+  admin-bootstrap-exit: ${ADMIN_BOOTSTRAP_EXIT:false}
 
 jwt:
   secret: ${JWT_SECRET:}

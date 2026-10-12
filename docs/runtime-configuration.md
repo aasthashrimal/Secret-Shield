@@ -33,12 +33,11 @@ and requests under a servlet context path. Neighboring paths/methods remain prot
 This is process liveness; complete startup still requires valid DB/JWT configuration.
 GET /api/health requires authentication.
 
-## Verification - 11 October 2026
+## Verification
 
-Java 21 compile succeeded; all 40 database-independent and all 52 full disposable
-PostgreSQL tests passed. Tests cover MVC/security errors, precise liveness matching,
-profile isolation, UTC lifecycle persistence, registration/login, BCrypt storage,
-valid JWT access, conflicts and migration preservation. See [testing](testing.md).
+The initial M01 verification passed 40 database-independent and 52 full tests.
+After M02/M03, Java 21 passes 54 database-independent and 86 full disposable
+PostgreSQL tests. See [testing](testing.md).
 
 Real local startup through the backup/adoption helper succeeded. The supported
 existing schema was baselined and migrated; a nonempty logical backup was retained
@@ -47,4 +46,8 @@ passed; no users were created or changed by smoke requests. The temporary applic
 was stopped afterwards. Earlier M01.4 verification used Hibernate update; that policy
 has now been replaced by versioned migrations and validation.
 
-M02 follow-up: all 45 unit and 70 full tests pass, including expired/tampered JWTs, /me, CORS, removal of the in-memory user, real concurrent registration and 14 real HTTP script checks. V3 normalizes stored email with collision refusal. See [authentication policy](auth-session.md) and [manual checks](auth-manual-checks.md). Roles and resource authorization remain M03.
+M03 follow-up: all 54 database-independent and 86 full tests pass. V4 constrains
+roles; registration cannot assign ADMIN; bootstrap, admin-only access, cross-owner
+and nested-resource denials are covered. V4 was applied successfully to the configured
+Neon database, followed by seven live checks and an anonymous admin-route 401 check.
+See [roles and authorization](user-roles.md).

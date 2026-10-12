@@ -31,7 +31,7 @@ public class AuthController {
 
         @GetMapping("/me")
         public UserSummary me(@AuthenticationPrincipal User user) {
-                return new UserSummary(user.getId().toString(), user.getUsername(), user.getEmail(), user.getRole());
+                return UserSummary.from(user);
         }
 
         @PostMapping("/register")
@@ -48,7 +48,7 @@ public class AuthController {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole().name()
         );
 
         return ResponseEntity

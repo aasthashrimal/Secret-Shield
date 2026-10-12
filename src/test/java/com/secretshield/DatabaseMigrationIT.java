@@ -78,8 +78,8 @@ class DatabaseMigrationIT extends PostgresApiTest {
         inDisposableSchema(schema -> {
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
-            assertEquals("3", schema.flyway().info().current().getVersion().getVersion());
-            assertEquals(3, schema.flyway().info().applied().length);
+            assertEquals("4", schema.flyway().info().current().getVersion().getVersion());
+            assertEquals(4, schema.flyway().info().applied().length);
             try (var statement = schema.connection().createStatement(); var rows = statement.executeQuery(
                     "SELECT is_nullable FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='users' AND column_name='updated_at'")) {
                 assertTrue(rows.next());
@@ -158,6 +158,41 @@ class DatabaseMigrationIT extends PostgresApiTest {
                 assertTrue(rows.next()); assertEquals(2, rows.getInt(1)); assertEquals(1, rows.getInt(2));
             }
             assertEquals("2", schema.flyway().info().current().getVersion().getVersion());
+        });
+    }
+
+    @Test void roleMigrationNormalizesSupportedHistoricalRole() throws Exception {
+        inDisposableSchema(schema -> {
+            legacyUser(schema.connection(), false);
+            try (var statement = schema.connection().createStatement()) {
+                statement.execute("UPDATE users SET role=' developer '");
+            }
+            DatabaseMigrationConfig.migrate(schema.flyway(), true);
+            try (var statement = schema.connection().createStatement();
+                    var rows = statement.executeQuery("SELECT role FROM users")) {
+                assertTrue(rows.next());
+                assertEquals("DEVELOPER", rows.getString(1));
+            }
+        });
+    }
+
+    @Test void unsupportedHistoricalRoleStopsMigrationWithoutChangingIt() throws Exception {
+        inDisposableSchema(schema -> {
+            legacyUser(schema.connection(), false);
+            DatabaseMigrationConfig.migrate(schema.flyway(), true);
+            try (var statement = schema.connection().createStatement()) {
+                statement.execute("ALTER TABLE users DROP CONSTRAINT users_role_allowed");
+                statement.execute("UPDATE users SET role='SUPERUSER'");
+                statement.execute("DELETE FROM flyway_schema_history WHERE version='4'");
+            }
+            assertThrows(org.flywaydb.core.api.FlywayException.class,
+                    () -> DatabaseMigrationConfig.migrate(schema.flyway(), false));
+            try (var statement = schema.connection().createStatement();
+                    var rows = statement.executeQuery("SELECT role FROM users")) {
+                assertTrue(rows.next());
+                assertEquals("SUPERUSER", rows.getString(1));
+            }
+            assertEquals("3", schema.flyway().info().current().getVersion().getVersion());
         });
     }
 }

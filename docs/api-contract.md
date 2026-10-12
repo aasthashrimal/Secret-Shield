@@ -126,7 +126,7 @@ are finalized design targets; they are introduced in their own modules' migratio
 
 | Entity | Required fields / relationships | Uniqueness and lifecycle |
 | --- | --- | --- |
-| User | id, username, email, BCrypt password, role, createdAt, updatedAt | Existing unique username/email; timestamp backfill in V2; email normalization implemented in V3; controlled `DEVELOPER`/`ADMIN` roles implemented in M03 |
+| User | id, username, email, BCrypt password, role, createdAt, updatedAt | Unique username/email; timestamp backfill V2; email normalization V3; controlled `DEVELOPER`/`ADMIN` role and constraint V4 |
 | ProjectRepository | id, ownerId → User, githubOwner, githubName, canonicalUrl, defaultBranch, active, createdAt, updatedAt | Unique `(ownerId, githubOwner, githubName)` after lowercasing GitHub identity; deactivate rather than delete |
 | Scan | id, repositoryId → ProjectRepository, commitSha, branch, trigger, status, scannerVersion (nullable before execution), runId/runAttempt (nullable for manual scans), startedAt/completedAt (nullable before relevant transition), failureCode (nullable), createdAt, updatedAt | CI unique `(repositoryId, runId, runAttempt, commitSha)`; payload digest distinguishes identical vs conflicting replay |
 | Finding | id, scanId → Scan, incidentId → Incident (nullable until incident linkage), fingerprint, ruleId, severity, filePath, line, commitSha, sanitizedDescription, createdAt | Unique `(scanId, fingerprint)`; immutable occurrence; incident must have the same repository as scan |
@@ -200,6 +200,7 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | GET `/api/health/live` | Public | 200, `{"status":"UP"}` | Implemented |
 | GET `/api/health` | User | 200, current plain-text health message | Implemented |
 | GET `/api/auth/me` | User | 200, UserSummary | Implemented M02 |
+| GET `/api/admin/users/{id}` | Admin | 200, UserSummary; safe role inspection | Implemented M03 |
 | POST `/api/repositories` | User | 201, RepositoryDto | Planned M04 |
 | GET `/api/repositories` | User, ownership-filtered/admin | 200, Page<RepositoryDto> | Planned M04 |
 | GET `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto | Planned M04 |
@@ -253,7 +254,7 @@ type ActorType = "USER" | "MACHINE" | "SYSTEM";
 interface Page<T> { content: T[]; page: number; size: number; totalElements: number; totalPages: number }
 interface ExistingRegistrationResponse { id: number; username: string; email: string; role: string }
 interface ExistingLoginResponse { token: string; username: string; email: string; role: string }
-interface UserSummary { id: Id; username: string; email: string; role: string } // controlled roles arrive in M03
+interface UserSummary { id: Id; username: string; email: string; role: Role }
 interface RepositoryDto { id: Id; ownerId: Id; githubOwner: string; githubName: string; canonicalUrl: string; defaultBranch: string; active: boolean; createdAt: Instant; updatedAt: Instant }
 interface ScanDto { id: Id; repositoryId: Id; commitSha: string; branch: string; trigger: "MANUAL" | "CI_PUSH" | "CI_PR"; runId: string | null; runAttempt: number | null; scannerVersion: string | null; status: ScanStatus; failureCode: string | null; startedAt: Instant | null; completedAt: Instant | null; createdAt: Instant; updatedAt: Instant }
 interface FindingDto { id: Id; scanId: Id; incidentId: Id | null; fingerprint: string; ruleId: string; severity: Severity; filePath: string; line: number; commitSha: string; sanitizedDescription: string; createdAt: Instant }

@@ -15,6 +15,12 @@ If a collision is reported, stop and review the affected identities privately,
 resolve them deliberately with a backup, and rerun. Do not delete users or repair
 history blindly. Tests prove collision refusal preserves both rows and V2 history.
 
+M03 adds V4. It trims and uppercases supported historical role values, narrows the
+column to `VARCHAR(20)`, and adds a check constraint allowing only `DEVELOPER` or
+`ADMIN`. Any other existing role aborts the transactional migration before it changes
+that value. Resolve unknown roles deliberately from a private backup; do not map them
+to ADMIN automatically. Hibernate then maps the column to `UserRole` with `EnumType.STRING`.
+
 ## Fresh database
 
 Create an empty database with your local PostgreSQL tools, configure `.env`, and
