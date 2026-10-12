@@ -12,6 +12,7 @@ public record ApiError(boolean success, int status, String code, String message)
             case 403 -> new ApiError(false, 403, "FORBIDDEN", "Access denied");
             case 404 -> new ApiError(false, 404, "NOT_FOUND", "Resource not found");
             case 409 -> new ApiError(false, 409, "CONFLICT", "Resource already exists or conflicts with current state");
+            case 413 -> new ApiError(false, 413, "PAYLOAD_TOO_LARGE", "Request payload too large");
             default -> {
                 if (status.is5xxServerError()) {
                     yield new ApiError(false, status.value(), "INTERNAL_SERVER_ERROR", "An unexpected error occurred");

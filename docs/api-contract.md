@@ -206,13 +206,13 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | GET `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto | Implemented M04 |
 | PATCH `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto; only defaultBranch editable | Implemented M04 |
 | POST `/api/repositories/{id}/deactivate` | Owner/admin | 204; idempotent, retains history | Implemented M04 |
-| POST `/api/repositories/{id}/scans` | Owner/admin, active repo | 201, ScanDto; manual QUEUED metadata | Planned M05 |
-| GET `/api/repositories/{id}/scans` | Owner/admin | 200, Page<ScanDto> | Planned M05 |
-| GET `/api/repositories/{id}/scans/{scanId}` | Owner/admin | 200, ScanDto | Planned M05 |
+| POST `/api/repositories/{id}/scans` | Owner/admin, active repo | 201, ScanDto; manual QUEUED metadata | Implemented M05 |
+| GET `/api/repositories/{id}/scans` | Owner/admin | 200, Page<ScanDto> | Implemented M05 |
+| GET `/api/repositories/{id}/scans/{scanId}` | Owner/admin | 200, ScanDto | Implemented M05 |
 | POST `/api/repositories/{id}/scans/{scanId}/start` | Owner/admin | 202, ScanDto; controlled local scanner | Planned M06 |
-| POST `/api/repositories/{id}/ci-credentials` | Owner/admin | 201, id plus one-time synthetic/real issued credential | Planned M05 |
-| POST `/api/repositories/{id}/ci-credentials/{credentialId}/revoke` | Owner/admin | 204; idempotent | Planned M05 |
-| POST `/api/ci/repositories/{id}/scan-results` | Repository machine credential only | 201 first import, 200 identical replay, ScanDto | Planned M05/M07 |
+| POST `/api/repositories/{id}/ci-credentials` | Owner/admin | 201, id plus one-time issued credential | Implemented M05 |
+| POST `/api/repositories/{id}/ci-credentials/{credentialId}/revoke` | Owner/admin | 204; idempotent | Implemented M05 |
+| POST `/api/ci/repositories/{id}/scan-results` | Repository machine credential only | 201 first import, 200 identical replay, ScanDto | Implemented M05; findings persist in M07 |
 | GET `/api/repositories/{id}/scans/{scanId}/findings` | Owner/admin | 200, Page<FindingDto> | Planned M07 |
 | GET `/api/repositories/{id}/findings/{findingId}` | Owner/admin | 200, FindingDto | Planned M07 |
 | GET `/api/repositories/{id}/incidents` | Owner/admin | 200, Page<IncidentDto> | Planned M08 |
@@ -244,7 +244,9 @@ CI result input contains `runId` (string), positive `runAttempt`, `commitSha`,
 Maximum body 1 MiB and 1000 findings; oversized body 413. Reject secret/snippet/raw
 report fields and conflicting identities. Fingerprints/severities are computed by
 the server; callers cannot select a clean status alongside findings. The credential
-format and header parsing are versioned in M05.3; interactive JWTs are rejected here.
+format is `ssci_v1.<credentialId>.<secret>` in `X-Secret-Shield-Credential`.
+Only its BCrypt hash is stored; the full value is returned once. Issue a replacement
+then revoke the old ID to rotate. Interactive JWTs are rejected here.
 
 ## Frontend DTO shapes (implementation targets)
 

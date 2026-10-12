@@ -100,7 +100,7 @@ selects backup tools for a nonstandard installation. Stop the backend with Ctrl+
 powershell -NoProfile -File .\scripts\test-postgres.ps1
 ```
 
-Expected through M04: successful compilation, 57 database-independent tests, and 99 tests in
+Expected through M05: successful compilation, 60 database-independent tests, and 110 tests in
 the full disposable PostgreSQL run. The latter includes positive registration/login,
 BCrypt storage, valid JWT access, timestamps, conflicts and fresh/legacy migrations.
 It uses synthetic data and cleans up its own database; development data is untouched.

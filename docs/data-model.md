@@ -88,10 +88,10 @@ names; Module 1 migrations deliberately create only users. `long`, `string`, and
 | --- | --- | --- |
 | User | Repository owner and human actor; normalized email and controlled role | Existing; email normalized in M02, roles constrained in M03 |
 | ProjectRepository | User-owned GitHub identity, canonical URL, default branch, active flag | Implemented M04 |
-| Scan | Repository/commit/run identity, scanner version, outcome, and timing | M05.1 |
+| Scan | Repository/commit/run identity, scanner version, outcome, and timing | Implemented M05 |
 | Finding | One scan's sanitized occurrence, stable fingerprint, rule, severity, and safe location | M07.1 |
 | Incident | Repository-scoped review record grouping repeated finding occurrences | M08.1 |
-| CiCredential | Repository-scoped hashed machine credential, expiry and revocation | M05.3 |
+| CiCredential | Repository-scoped hashed machine credential, expiry and revocation | Implemented M05 |
 | AuditEvent | Append-only repository history with operation, actor, time, and safe change summary | M08.3 |
 | NotificationDelivery | Delivery outcome/retry evidence for an incident event and recipient configuration | M10.1 |
 

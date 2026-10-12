@@ -100,7 +100,7 @@ public class ProjectRepositoryService {
         return repository;
     }
 
-    private ProjectRepository loadAuthorized(User actor, long id) {
+    public ProjectRepository loadAuthorized(User actor, long id) {
         requireActor(actor);
         if (id <= 0) { throw new ResourceNotFoundException("Repository not found"); }
         ProjectRepository repository = repositories.findById(id)

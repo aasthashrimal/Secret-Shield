@@ -97,11 +97,11 @@ Depends on M03. Initial connection means storing validated GitHub metadata; OAut
 
 Depends on M04. Finding persistence is added in M07; scan metadata and submission contracts come first.
 
-- [ ] **M05.1 — Member 1:** Add Scan schema and DTOs with branch, commit SHA, trigger, run ID/attempt, scanner version, timestamps, and controlled status transitions. **Done when:** illegal transitions are rejected and failure is distinct from findings.
-- [ ] **M05.2 — Member 1:** Implement authorized scan create/list/detail APIs with repository/status/date filters and pagination. Start with explicit local/manual scan records rather than arbitrary remote execution. **Done when:** the scan always belongs to the requested authorized repository.
-- [ ] **M05.3 — Member 1:** Define the sanitized result schema and implement a separate repository-scoped machine-authentication mechanism for CI ingestion; store credential hashes or approved secure equivalents, with rotation/revocation. Bound payload size and validate commit/run/repository identity. **Done when:** invalid/revoked credentials or mismatched identities are rejected.
-- [ ] **M05.4 — Member 1:** Make ingestion idempotent using documented repository/run/attempt/commit identity; transactionally complete scan metadata and provide a finding-persistence extension point. Reject conflicting replay payloads. **Done when:** network retries do not create duplicate scans and invalid submissions do not leave partial state.
-- [ ] **M05.5 — Member 1:** Test lifecycle, ownership, machine scope, replay/conflicts, payload validation, and pagination. **Done when:** verified scan APIs and sanitized examples can be handed to frontend work.
+- [x] **M05.1 — Member 1:** Add Scan schema and DTOs with branch, commit SHA, trigger, run ID/attempt, scanner version, timestamps, and controlled status transitions. **Done when:** illegal transitions are rejected and failure is distinct from findings. **Verified 12 October 2026:** V6 and controlled enums implement the agreed lifecycle; terminal transitions, timestamps, scanner version, and distinct failure codes are tested.
+- [x] **M05.2 — Member 1:** Implement authorized scan create/list/detail APIs with repository/status/date filters and pagination. Start with explicit local/manual scan records rather than arbitrary remote execution. **Done when:** the scan always belongs to the requested authorized repository. **Verified 12 October 2026:** implemented active-repository manual creation plus owner/admin list/detail with repository, status, branch, commit and UTC date filters, bounded pages and nested-parent checks.
+- [x] **M05.3 — Member 1:** Define the sanitized result schema and implement a separate repository-scoped machine-authentication mechanism for CI ingestion; store credential hashes or approved secure equivalents, with rotation/revocation. Bound payload size and validate commit/run/repository identity. **Done when:** invalid/revoked credentials or mismatched identities are rejected. **Verified 12 October 2026:** repository-scoped `ssci_v1` credentials use random 256-bit secrets, one-time return, BCrypt storage, optional expiry and idempotent revocation. CI payloads are capped at 1 MiB/1000 findings and reject wrong scope, JWT-only calls, unsafe paths and invalid identities.
+- [x] **M05.4 — Member 1:** Make ingestion idempotent using documented repository/run/attempt/commit identity; transactionally complete scan metadata and provide a finding-persistence extension point. Reject conflicting replay payloads. **Done when:** network retries do not create duplicate scans and invalid submissions do not leave partial state. **Verified 12 October 2026:** a repository row lock and partial unique index serialize CI identity; payload SHA-256 returns 200 for identical replay and 409 for conflict. Scan completion and `FindingResultSink` execute in one transaction; M07 supplies persistence.
+- [x] **M05.5 — Member 1:** Test lifecycle, ownership, machine scope, replay/conflicts, payload validation, and pagination. **Done when:** verified scan APIs and sanitized examples can be handed to frontend work. **Verified 12 October 2026:** 60 database-independent and 110 full disposable PostgreSQL tests passed without failures/skips; documentation provides sanitized handoff examples.
 
 ## M06 — Local Gitleaks integration
 
@@ -240,8 +240,8 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration), M01, M02, M03 and M04 are complete
-under the solo scope. The next implementation module is M05 scan management and result ingestion.
+Modules M00 (except deferred GitHub collaboration) through M05 are complete under
+the solo scope. The next implementation module is M06 local Gitleaks integration.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
@@ -249,4 +249,6 @@ Module 02 completion record: M02.1-M02.6 implemented and verified by Member 1, i
 
 Module 03 completion record (12 October 2026): M03.1-M03.4 implemented by Member 1 under the solo scope. That checkpoint passed 54 database-independent and 86 full tests. V4 also migrated the configured Neon database successfully; live smoke checks passed and the backend was stopped.
 
-Module 04 completion record (12 October 2026): M04.1-M04.4 implemented by Member 1 under the current solo workflow. Current suites pass 57 database-independent and 99 full disposable PostgreSQL tests. V5 and repository API behavior are verified in isolation; the configured development database will migrate on its next normal startup. M05 and later implementation remain unchecked.
+Module 04 completion record (12 October 2026): M04.1-M04.4 implemented by Member 1 under the current solo workflow. That checkpoint passed 57 database-independent and 99 full disposable PostgreSQL tests.
+
+Module 05 completion record (12 October 2026): M05.1-M05.5 implemented and verified by Member 1. Current suites pass 60 database-independent and 110 full disposable PostgreSQL tests. V6 will migrate the configured development database on its next normal startup; M06 is next.

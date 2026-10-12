@@ -108,7 +108,7 @@ delete `target/` while an integration run or retained temporary server is active
 Verified on Windows with PostgreSQL 18.6, Java 21.0.12.1, and unchanged dependency versions:
 
 - Default database-independent suite: 54 tests.
-- Disposable runner through M04: 99 tests passed (57 database-independent tests and 42 context/API/migration/HTTP
+- Disposable runner through M05: 110 tests passed (60 database-independent tests and 50 context/API/migration/HTTP
   integration tests), with no failures or skipped tests.
 - Integration tests verified database identity, empty user state before each test,
   transaction rollback, registration persistence/BCrypt storage, login and JWT

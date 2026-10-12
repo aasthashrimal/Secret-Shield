@@ -4,11 +4,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.query.Param;
 
 import com.secretshield.entity.ProjectRepository;
 
 public interface ProjectRepositoryRepository extends JpaRepository<ProjectRepository, Long> {
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select repository from ProjectRepository repository where repository.id=:id")
+    java.util.Optional<ProjectRepository> findLockedById(@Param("id") Long id);
     boolean existsByOwnerIdAndGithubOwnerAndGithubName(
             Long ownerId, String githubOwner, String githubName);
 
