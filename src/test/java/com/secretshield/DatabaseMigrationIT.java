@@ -78,12 +78,18 @@ class DatabaseMigrationIT extends PostgresApiTest {
         inDisposableSchema(schema -> {
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
-            assertEquals("4", schema.flyway().info().current().getVersion().getVersion());
-            assertEquals(4, schema.flyway().info().applied().length);
+            assertEquals("5", schema.flyway().info().current().getVersion().getVersion());
+            assertEquals(5, schema.flyway().info().applied().length);
             try (var statement = schema.connection().createStatement(); var rows = statement.executeQuery(
                     "SELECT is_nullable FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='users' AND column_name='updated_at'")) {
                 assertTrue(rows.next());
                 assertEquals("NO", rows.getString(1));
+            }
+            try (var statement = schema.connection().createStatement(); var rows = statement.executeQuery(
+                    "SELECT delete_rule FROM information_schema.referential_constraints "
+                            + "WHERE constraint_schema=current_schema() AND constraint_name='project_repositories_owner_fk'")) {
+                assertTrue(rows.next());
+                assertEquals("RESTRICT", rows.getString(1));
             }
         });
     }
@@ -183,7 +189,7 @@ class DatabaseMigrationIT extends PostgresApiTest {
             try (var statement = schema.connection().createStatement()) {
                 statement.execute("ALTER TABLE users DROP CONSTRAINT users_role_allowed");
                 statement.execute("UPDATE users SET role='SUPERUSER'");
-                statement.execute("DELETE FROM flyway_schema_history WHERE version='4'");
+                statement.execute("DELETE FROM flyway_schema_history WHERE version IN ('4','5')");
             }
             assertThrows(org.flywaydb.core.api.FlywayException.class,
                     () -> DatabaseMigrationConfig.migrate(schema.flyway(), false));

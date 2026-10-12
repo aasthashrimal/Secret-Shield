@@ -1,9 +1,9 @@
 # Secret Shield API contract
 
 Foundation contract finalized by Member 1 on 11 October 2026 (M01.1).
-The existing authentication, health and error behavior is implemented. Resource,
-role and dashboard contracts below are agreed implementation targets for later
-modules; documenting an endpoint does not make it available.
+Authentication, health, roles, errors, and repository management are implemented.
+Scan, finding, incident, dashboard, notification, and gate contracts below remain
+implementation targets for later modules; documenting an endpoint does not make it available.
 
 ## Error responses
 
@@ -120,9 +120,9 @@ in this first version. Notification lists accept `status`; audit lists accept
 
 ## Entities, ownership and integrity
 
-Only `User` is currently implemented. [data-model.md](data-model.md) distinguishes
-the migration-backed current schema from future entities. Future tables/fields below
-are finalized design targets; they are introduced in their own modules' migrations.
+`User` and `ProjectRepository` are currently implemented. [data-model.md](data-model.md)
+distinguishes the migration-backed current schema from future entities. Remaining
+tables/fields below are finalized design targets for their own modules' migrations.
 
 | Entity | Required fields / relationships | Uniqueness and lifecycle |
 | --- | --- | --- |
@@ -201,11 +201,11 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | GET `/api/health` | User | 200, current plain-text health message | Implemented |
 | GET `/api/auth/me` | User | 200, UserSummary | Implemented M02 |
 | GET `/api/admin/users/{id}` | Admin | 200, UserSummary; safe role inspection | Implemented M03 |
-| POST `/api/repositories` | User | 201, RepositoryDto | Planned M04 |
-| GET `/api/repositories` | User, ownership-filtered/admin | 200, Page<RepositoryDto> | Planned M04 |
-| GET `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto | Planned M04 |
-| PATCH `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto; only defaultBranch editable | Planned M04 |
-| POST `/api/repositories/{id}/deactivate` | Owner/admin | 204; idempotent, retains history | Planned M04 |
+| POST `/api/repositories` | User | 201, RepositoryDto | Implemented M04 |
+| GET `/api/repositories` | User, ownership-filtered/admin | 200, Page<RepositoryDto> | Implemented M04 |
+| GET `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto | Implemented M04 |
+| PATCH `/api/repositories/{id}` | Owner/admin | 200, RepositoryDto; only defaultBranch editable | Implemented M04 |
+| POST `/api/repositories/{id}/deactivate` | Owner/admin | 204; idempotent, retains history | Implemented M04 |
 | POST `/api/repositories/{id}/scans` | Owner/admin, active repo | 201, ScanDto; manual QUEUED metadata | Planned M05 |
 | GET `/api/repositories/{id}/scans` | Owner/admin | 200, Page<ScanDto> | Planned M05 |
 | GET `/api/repositories/{id}/scans/{scanId}` | Owner/admin | 200, ScanDto | Planned M05 |
@@ -228,6 +228,15 @@ Repository creation body: `githubOwner`, `githubName`, `defaultBranch` (default
 and `commitSha`; the server derives trigger/status/repositoryId. Mutation input must
 not accept ownership, roles, server timestamps or raw findings. Nested IDs are
 validated against the parent repository/scan, not merely loaded globally.
+
+M04 trims and lowercases GitHub owner/name before persistence. Owner is 1–39 ASCII
+letters/digits/hyphens, cannot begin/end with a hyphen, and rejects consecutive
+hyphens. Repository name is 1–100 ASCII letters/digits plus `.`, `_`, or `-`, with
+`.` and `..` rejected. The server derives exactly
+`https://github.com/{owner}/{name}` and does not accept a URL, token, clone credential,
+or ownership field. Identity is unique by application owner plus normalized GitHub
+owner/name. `defaultBranch` is a conservative 1–255-character Git ref subset; invalid
+metadata is 400 and duplicate identity is 409. PATCH accepts only `defaultBranch`.
 
 CI result input contains `runId` (string), positive `runAttempt`, `commitSha`,
 `branch`, `trigger` (`CI_PUSH|CI_PR`), `scannerVersion`, terminal `status`, safe

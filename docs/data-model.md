@@ -2,17 +2,17 @@
 
 Prepared by Member 1 on 11 October 2026 for M01.6.
 
-The implemented model below is checked against the Java entity, V1–V4 migrations,
+The implemented model below is checked against the Java entities, V1–V5 migrations,
 DTOs, configuration, and PostgreSQL integration tests. The future model is the
 finalized M01.1 design in [api-contract.md](api-contract.md), based on the scope in
 [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) and [MODULE_TODO.md](../MODULE_TODO.md).
-Future entities remain unimplemented until their named modules; design completion
+Entities after `ProjectRepository` remain unimplemented until their named modules; design completion
 does not imply their tables or endpoints exist.
 
-## Implemented entity: User
+## Implemented entities: User and ProjectRepository
 
-`User` maps to the `users` table. It is currently the only application JPA entity.
-There are no application entity relationships or foreign keys yet.
+`User` maps to `users`. `ProjectRepository` maps to `project_repositories` and has
+a required, immutable owner foreign key to `users` with `ON DELETE RESTRICT`.
 
 | Java field | Java type | Current mapping and behavior |
 | --- | --- | --- |
@@ -29,6 +29,7 @@ The diagram uses Java field names/types, not a migration's physical column names
 
 ```mermaid
 erDiagram
+    USER ||--o{ PROJECT_REPOSITORY : owns
     USER {
         Long id PK
         String username UK
@@ -37,6 +38,17 @@ erDiagram
         UserRole role "DEVELOPER or ADMIN; V4 constrained"
         LocalDateTime createdAt "UTC; required; not updatable"
         LocalDateTime updatedAt "UTC; required after V2"
+    }
+    PROJECT_REPOSITORY {
+        Long id PK
+        Long ownerId FK
+        String githubOwner "lowercase"
+        String githubName "lowercase"
+        String canonicalUrl
+        String defaultBranch
+        boolean active
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
     }
 ```
 
@@ -53,7 +65,8 @@ JPA lifecycle callbacks do not cover direct SQL/bulk JPQL updates.
 ## Current schema and verification boundary
 
 V1 creates the six original user columns; V2 adds/backfills `updated_at` and makes
-it required. All profiles use Hibernate `ddl-auto: validate`; Flyway owns schema
+it required. V3 normalizes email, V4 constrains roles, and V5 creates repository
+metadata with owner-scoped identity and restrictive ownership. All profiles use Hibernate `ddl-auto: validate`; Flyway owns schema
 changes. Existing users require explicit, schema-checked adoption at baseline version
 0. See [database-migrations.md](database-migrations.md) for the fresh/existing paths.
 See [runtime-configuration.md](runtime-configuration.md) and [testing.md](testing.md).
@@ -65,8 +78,8 @@ Historical timezone conversion is intentionally not performed. The runner's
 
 ## Finalized design for future entities and relationships
 
-Only `User` exists in the following diagram. Every other entity and every
-relationship is planned. Field names, cardinality, ID types and integrity policies
+`User`, `ProjectRepository`, and their ownership relationship exist in the following
+diagram. Every other entity and relationship is planned. Field names, cardinality, ID types and integrity policies
 match the M01.1 contract. Each later module supplies its own physical DDL/constraint
 names; Module 1 migrations deliberately create only users. `long`, `string`, and
 `datetime` are logical types, not SQL syntax. DTO resource IDs are decimal strings.
@@ -74,7 +87,7 @@ names; Module 1 migrations deliberately create only users. `long`, `string`, and
 | Entity | Planned responsibility | Implementation step |
 | --- | --- | --- |
 | User | Repository owner and human actor; normalized email and controlled role | Existing; email normalized in M02, roles constrained in M03 |
-| ProjectRepository | User-owned GitHub identity, canonical URL, default branch, active flag | M04.1 |
+| ProjectRepository | User-owned GitHub identity, canonical URL, default branch, active flag | Implemented M04 |
 | Scan | Repository/commit/run identity, scanner version, outcome, and timing | M05.1 |
 | Finding | One scan's sanitized occurrence, stable fingerprint, rule, severity, and safe location | M07.1 |
 | Incident | Repository-scoped review record grouping repeated finding occurrences | M08.1 |

@@ -21,6 +21,11 @@ column to `VARCHAR(20)`, and adds a check constraint allowing only `DEVELOPER` o
 that value. Resolve unknown roles deliberately from a private backup; do not map them
 to ADMIN automatically. Hibernate then maps the column to `UserRole` with `EnumType.STRING`.
 
+M04 adds V5. It creates `project_repositories`, preserves owner records with a
+restrictive foreign key, enforces owner-scoped normalized GitHub identity, verifies
+the derived canonical URL, and adds list indexes. Repository removal is intentionally
+absent; deactivation keeps the row available for later scan and audit history.
+
 ## Fresh database
 
 Create an empty database with your local PostgreSQL tools, configure `.env`, and
@@ -80,4 +85,4 @@ For recovery, stop the app and restore into a **new empty recovery database** wi
 matching PostgreSQL tooling, then verify its rows/schema before changing DB_URL.
 Use `pg_restore -h localhost -U postgres -W -d <new-recovery-database> <backup-file>`.
 Do not use `--clean` against your working database or delete it to troubleshoot.
-Do not edit applied V1/V2 scripts; future changes need new versioned migrations.
+Do not edit applied V1–V5 scripts; future changes need new versioned migrations.

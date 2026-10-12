@@ -1,0 +1,19 @@
+package com.secretshield.dto;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+
+public record PageResponse<T>(
+        List<T> content,
+        int page,
+        int size,
+        long totalElements,
+        int totalPages) {
+
+    public static <S, T> PageResponse<T> from(Page<S> source,
+            java.util.function.Function<S, T> mapper) {
+        return new PageResponse<>(source.getContent().stream().map(mapper).toList(),
+                source.getNumber(), source.getSize(), source.getTotalElements(), source.getTotalPages());
+    }
+}

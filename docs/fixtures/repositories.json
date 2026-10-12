@@ -1,0 +1,31 @@
+{
+  "active": {
+    "id": "101",
+    "ownerId": "7",
+    "githubOwner": "demo-team",
+    "githubName": "synthetic-active",
+    "canonicalUrl": "https://github.com/demo-team/synthetic-active",
+    "defaultBranch": "main",
+    "active": true,
+    "createdAt": "2026-10-12T09:00:00Z",
+    "updatedAt": "2026-10-12T09:00:00Z"
+  },
+  "inactive": {
+    "id": "102",
+    "ownerId": "7",
+    "githubOwner": "demo-team",
+    "githubName": "synthetic-inactive",
+    "canonicalUrl": "https://github.com/demo-team/synthetic-inactive",
+    "defaultBranch": "archive/final",
+    "active": false,
+    "createdAt": "2026-10-12T09:05:00Z",
+    "updatedAt": "2026-10-12T10:00:00Z"
+  },
+  "emptyPage": {
+    "content": [],
+    "page": 0,
+    "size": 20,
+    "totalElements": 0,
+    "totalPages": 0
+  }
+}

@@ -88,10 +88,10 @@ Depends on M02.
 
 Depends on M03. Initial connection means storing validated GitHub metadata; OAuth and automated cloning are outside this first version.
 
-- [ ] **M04.1 — Member 1:** Add `ProjectRepository` entity, migration, repository interface, DTOs, and canonical GitHub owner/name/URL validation. Define duplicate identity per owner. **Done when:** valid repositories persist and invalid/duplicate submissions have documented responses.
-- [ ] **M04.2 — Member 1:** Implement create, paginated list, detail, metadata update, and deactivate operations with ownership checks. Preserve scan/history records rather than cascading away evidence. **Done when:** each user sees only authorized repositories and inactive repositories cannot start scans.
-- [ ] **M04.3 — Member 1:** Test ownership, URL validation, duplicates, pagination, and deactivation. **Done when:** two-user isolation and retained history pass.
-- [ ] **M04.4 — Member 2:** Document repository terminology and prepare synthetic repository fixtures/page copy using M04 DTOs. **Done when:** fixtures contain no personal access tokens and cover active/inactive/empty states.
+- [x] **M04.1 — Member 1:** Add `ProjectRepository` entity, migration, repository interface, DTOs, and canonical GitHub owner/name/URL validation. Define duplicate identity per owner. **Done when:** valid repositories persist and invalid/duplicate submissions have documented responses. **Verified 12 October 2026:** added V5, the JPA entity/repository, compact page and repository DTOs, normalized GitHub metadata validation, derived canonical URLs, and owner-scoped database uniqueness. Invalid metadata returns 400 and normalized duplicates return 409.
+- [x] **M04.2 — Member 1:** Implement create, paginated list, detail, metadata update, and deactivate operations with ownership checks. Preserve scan/history records rather than cascading away evidence. **Done when:** each user sees only authorized repositories and inactive repositories cannot start scans. **Verified 12 October 2026:** implemented all five protected routes, developer-owned/admin-all listing, explicit paging/filter/sort validation, immutable ownership/identity, default-branch-only updates, idempotent deactivation, restrictive owner FK, and an active authorized repository guard for M05 scan creation.
+- [x] **M04.3 — Member 1:** Test ownership, URL validation, duplicates, pagination, and deactivation. **Done when:** two-user isolation and retained history pass. **Verified 12 October 2026:** 57 database-independent tests and 99 full disposable PostgreSQL tests passed with zero failures/skips. Ten repository integration tests cover canonical creation, invalid input, duplicates, database constraints, pagination/search/filtering, two-user 403 isolation, admin management, lifecycle retention, ID/query errors, and authentication. The disposable cluster stopped and was removed.
+- [x] **M04.4 — Member 2:** Document repository terminology and prepare synthetic repository fixtures/page copy using M04 DTOs. **Done when:** fixtures contain no personal access tokens and cover active/inactive/empty states. **Completed by Member 1 under the current solo workflow, 12 October 2026:** `docs/repository-management.md` defines terminology, validation, endpoint behavior, access, and page copy; `docs/fixtures/repositories.json` supplies active/inactive/empty synthetic DTO fixtures with no credentials.
 
 ## M05 — Scan management and authenticated ingestion
 
@@ -240,11 +240,13 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration), M01, M02 and M03 are complete
-under the solo scope. The next implementation module is M04 repository management.
+Modules M00 (except deferred GitHub collaboration), M01, M02, M03 and M04 are complete
+under the solo scope. The next implementation module is M05 scan management and result ingestion.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
 Module 02 completion record: M02.1-M02.6 implemented and verified by Member 1, including the original Member 2 documentation task. Its completion suites had 45 unit tests and 70 full tests.
 
-Module 03 completion record (12 October 2026): M03.1-M03.4 implemented by Member 1 under the solo scope. Current suites pass 54 database-independent and 86 full tests. V4 also migrated the configured Neon database successfully; live smoke checks passed and the backend was stopped. M04 and later implementation remain unchecked.
+Module 03 completion record (12 October 2026): M03.1-M03.4 implemented by Member 1 under the solo scope. That checkpoint passed 54 database-independent and 86 full tests. V4 also migrated the configured Neon database successfully; live smoke checks passed and the backend was stopped.
+
+Module 04 completion record (12 October 2026): M04.1-M04.4 implemented by Member 1 under the current solo workflow. Current suites pass 57 database-independent and 99 full disposable PostgreSQL tests. V5 and repository API behavior are verified in isolation; the configured development database will migrate on its next normal startup. M05 and later implementation remain unchecked.

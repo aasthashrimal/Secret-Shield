@@ -28,7 +28,7 @@ whose repository ID does not match the route gets 404. This prevents nested-reso
 mix-ups without exposing relationships through an unauthorized parent.
 
 `ResourceAuthorization` centralizes `requireAdmin`, owner-or-admin, and nested parent
-checks. M04 and later services must call it after loading their route parent; controllers
+checks. M04 repository services call it after loading their route parent; later services
 must not rely on hiding buttons. The `/api/admin/**` URL rule is a first defense and
 the service checks the role again. JWT role claims are informational: every request
 loads the current user and authority from PostgreSQL, so database role changes apply
@@ -70,7 +70,7 @@ when a collaborator no longer needs access. There is no public promotion/demotio
 It never returns password hashes, JWTs or timestamps. Anonymous callers get 401,
 developers get 403, administrators get 404 for an unknown positive ID, and a known
 user yields 200. This endpoint provides a narrow, testable admin boundary without
-implementing M04 repository management early.
+expanding the administrator API beyond the implemented repository management boundary.
 
 ## Dashboard labels for later frontend work
 

@@ -100,7 +100,7 @@ selects backup tools for a nonstandard installation. Stop the backend with Ctrl+
 powershell -NoProfile -File .\scripts\test-postgres.ps1
 ```
 
-Expected: successful compilation, 54 database-independent tests, and 86 tests in
+Expected through M04: successful compilation, 57 database-independent tests, and 99 tests in
 the full disposable PostgreSQL run. The latter includes positive registration/login,
 BCrypt storage, valid JWT access, timestamps, conflicts and fresh/legacy migrations.
 It uses synthetic data and cleans up its own database; development data is untouched.
@@ -119,7 +119,9 @@ and login are covered by the isolated full suite, which does not leave demo acco
 Implemented routes include `POST /api/auth/register` (201), `POST /api/auth/login`
 (200 with JWT), `GET /api/health/live` (public 200), and `GET /api/health`
 (200 with JWT, otherwise 401). See [request/response contract](api-contract.md).
-`GET /api/auth/me` now returns the safe current profile with a valid bearer token. Repositories and scanning routes belong to later modules.
+`GET /api/auth/me` returns the safe current profile with a valid bearer token.
+M04 repository routes under `/api/repositories` are implemented; see
+[repository management](repository-management.md). Scanning routes begin in M05.
 
 ## Troubleshooting
 
@@ -134,6 +136,7 @@ Implemented routes include `POST /api/auth/register` (201), `POST /api/auth/logi
 - Isolated test tooling/cleanup issues: see [testing](testing.md); do not point tests at development data.
 
 M02 removes default in-memory authentication and implements the bearer/CORS session
-policy. M03 adds controlled roles and owner/admin authorization helpers. See
+policy. M03 adds controlled roles and owner/admin authorization helpers. M04 adds
+validated GitHub metadata and owner-scoped repository management. See
 [authentication policy](auth-session.md), [manual checks](auth-manual-checks.md),
 and [roles and administrator bootstrap](user-roles.md).
