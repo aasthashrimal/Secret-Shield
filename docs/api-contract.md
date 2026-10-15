@@ -2,7 +2,7 @@
 
 Foundation contract finalized by Member 1 on 11 October 2026 (M01.1).
 Authentication, health, roles, errors, repository, scan, finding, incident, and audit management are implemented.
-Dashboard, notification, and gate contracts below remain
+Dashboard and notification contracts below remain
 implementation targets for later modules; documenting an endpoint does not make it available.
 
 ## Error responses
@@ -186,8 +186,9 @@ is explicit rather than claiming secret-based deduplication.
 Notification states: `QUEUED → SENDING → SENT | FAILED`; failed attempts may be
 queued again up to three total attempts. Same event/recipient is never inserted twice.
 Retries reuse the delivery record; only safe error codes are returned. A clean gate
-requires a completed clean scan for the same repository/commit; no scan, pending scan,
-finding-bearing scan, or failed scan yields BLOCK.
+requires the newest exact-repository/commit scan to be complete, validated, and clean;
+no scan, pending scan, finding-bearing scan, failed scan, or malformed clean record
+yields BLOCK. See [gate policy and dashboard messages](gate-policy.md).
 
 ## Endpoint inventory
 
@@ -219,7 +220,7 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | GET `/api/repositories/{id}/incidents/{incidentId}` | Owner/admin | 200, IncidentDto | Implemented M08 |
 | PATCH `/api/repositories/{id}/incidents/{incidentId}` | Owner/admin; ignore admin-only | 200, IncidentDto; status/reason/version | Implemented M08 |
 | GET `/api/repositories/{id}/audit-events` | Owner/admin | 200, Page<AuditEventDto> | Implemented M08 |
-| GET `/api/repositories/{id}/gate?commitSha=...` | Owner/admin | 200, GateDto (ALLOW/BLOCK, not an HTTP failure) | Planned M09 |
+| GET `/api/repositories/{id}/gate?commitSha=...` | Owner/admin | 200, GateDto (ALLOW/BLOCK, not an HTTP failure) | Implemented M09 |
 | GET `/api/repositories/{id}/incidents/{incidentId}/notifications` | Owner/admin | 200, Page<NotificationDto> | Planned M10 |
 | GET `/api/dashboard/overview` | User, ownership-filtered/admin | 200, DashboardOverviewDto | Planned M11 |
 

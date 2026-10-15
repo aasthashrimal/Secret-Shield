@@ -139,10 +139,10 @@ Depends on M07.
 
 Depends on M06–M08. The GitHub gate is enforced by M12; the backend records and explains the same policy.
 
-- [ ] **M09.1 — Member 1:** Define a policy: CLEAN with successful validated scanning allows; findings, FAILED, incomplete, missing, or malformed results block. Bind decisions to repository and commit SHA. **Done when:** the policy table covers all scan states.
-- [ ] **M09.2 — Member 1:** Implement a gate decision service and safe decision DTO with reason and scan identity. Separate incident review state from gate logic. **Done when:** resolving/ignoring incidents cannot convert an unsafe scan into ALLOW.
-- [ ] **M09.3 — Member 1:** Test clean/unsafe/failure decisions and wrong/stale-commit results. Define reporting-outage behavior without bypassing the scanner gate. **Done when:** every error path preserves deployment blocking where scan safety is unknown.
-- [ ] **M09.4 — Member 2:** Prepare dashboard gate status messages and the demo policy table. **Done when:** blocked-by-findings and blocked-by-scan-failure are visibly distinct.
+- [x] **M09.1 — Member 1:** Define a policy: CLEAN with successful validated scanning allows; findings, FAILED, incomplete, missing, or malformed results block. Bind decisions to repository and commit SHA. **Done when:** the policy table covers all scan states.
+- [x] **M09.2 — Member 1:** Implement a gate decision service and safe decision DTO with reason and scan identity. Separate incident review state from gate logic. **Done when:** resolving/ignoring incidents cannot convert an unsafe scan into ALLOW.
+- [x] **M09.3 — Member 1:** Test clean/unsafe/failure decisions and wrong/stale-commit results. Define reporting-outage behavior without bypassing the scanner gate. **Done when:** every error path preserves deployment blocking where scan safety is unknown.
+- [x] **M09.4 — Member 2:** Prepare dashboard gate status messages and the demo policy table. **Done when:** blocked-by-findings and blocked-by-scan-failure are visibly distinct.
 
 ## M10 — High-risk notifications with Azure Communication Services
 
