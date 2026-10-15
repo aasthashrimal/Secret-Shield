@@ -6,7 +6,7 @@ function Import-LocalEnvironment {
     }
     $values = @{}
     foreach ($line in [IO.File]::ReadAllLines($path)) {
-        if ($line -match '^\s*(DB_URL|DB_USERNAME|DB_PASSWORD|JWT_SECRET|FRONTEND_ORIGIN|SCANNER_WORKSPACE|GITLEAKS_PATH|GITLEAKS_CONFIG_PATH|SCANNER_TIMEOUT_SECONDS)\s*=(.*)$') {
+        if ($line -match '^\s*(DB_URL|DB_USERNAME|DB_PASSWORD|JWT_SECRET|FRONTEND_ORIGIN|SCANNER_WORKSPACE|GITLEAKS_PATH|GITLEAKS_CONFIG_PATH|SCANNER_TIMEOUT_SECONDS|NOTIFICATION_PROVIDER|NOTIFICATION_RECIPIENTS|NOTIFICATION_PUBLIC_BASE_URL|ACS_CONNECTION_STRING|ACS_SENDER_ADDRESS)\s*=(.*)$') {
             $name = $Matches[1]
             $value = $Matches[2].Trim()
             if ($value.Length -ge 2 -and (($value.StartsWith('"') -and $value.EndsWith('"')) -or
@@ -24,7 +24,9 @@ function Import-LocalEnvironment {
     }
     # Never evaluate shell code, expand values, or print credentials.
     foreach ($name in @('DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'FRONTEND_ORIGIN',
-            'SCANNER_WORKSPACE', 'GITLEAKS_PATH', 'GITLEAKS_CONFIG_PATH', 'SCANNER_TIMEOUT_SECONDS')) {
+            'SCANNER_WORKSPACE', 'GITLEAKS_PATH', 'GITLEAKS_CONFIG_PATH', 'SCANNER_TIMEOUT_SECONDS',
+            'NOTIFICATION_PROVIDER', 'NOTIFICATION_RECIPIENTS', 'NOTIFICATION_PUBLIC_BASE_URL',
+            'ACS_CONNECTION_STRING', 'ACS_SENDER_ADDRESS')) {
         if ($values.ContainsKey($name) -and -not [string]::IsNullOrWhiteSpace($values[$name])) {
             [Environment]::SetEnvironmentVariable($name, $values[$name], 'Process')
         }

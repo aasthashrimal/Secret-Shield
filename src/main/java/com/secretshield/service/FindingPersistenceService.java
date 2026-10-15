@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.secretshield.dto.SanitizedFindingInput;
 import com.secretshield.entity.Finding;
+import com.secretshield.entity.AuditEvent;
 import com.secretshield.entity.Incident;
 import com.secretshield.entity.IncidentStatus;
 import com.secretshield.entity.AuditActorType;
@@ -28,14 +29,17 @@ public class FindingPersistenceService implements FindingResultSink {
     private final IncidentRepository incidents;
     private final ProjectRepositoryRepository repositories;
     private final AuditService audit;
+    private final NotificationOutboxService outbox;
 
     public FindingPersistenceService(FindingRepository findings, FindingNormalizer normalizer,
-            IncidentRepository incidents, ProjectRepositoryRepository repositories, AuditService audit) {
+            IncidentRepository incidents, ProjectRepositoryRepository repositories, AuditService audit,
+            NotificationOutboxService outbox) {
         this.findings = findings;
         this.normalizer = normalizer;
         this.incidents = incidents;
         this.repositories = repositories;
         this.audit = audit;
+        this.outbox = outbox;
     }
 
     @Override
@@ -51,17 +55,19 @@ public class FindingPersistenceService implements FindingResultSink {
         }
         var existing = new HashSet<>(findings.findFingerprintsByScanId(scan.getId()));
         var newFindings = new ArrayList<Finding>();
+        var incidentEvents = new ArrayList<java.util.Map.Entry<Incident, AuditEvent>>();
         // Serializing by repository also protects the unique incident identity across scans.
         var repository = repositories.findLockedById(scan.getRepository().getId()).orElseThrow();
         for (var normalized : normalizedByFingerprint.values()) {
             if (existing.add(normalized.fingerprint())) {
                 Incident incident = incidents.findByRepositoryIdAndFingerprint(
                         repository.getId(), normalized.fingerprint()).orElse(null);
+                AuditEvent event;
                 if (incident == null) {
                     incident = incidents.saveAndFlush(Incident.builder().repository(repository)
                             .fingerprint(normalized.fingerprint()).severity(normalized.severity())
                             .status(IncidentStatus.OPEN).lastActorType(AuditActorType.SYSTEM).build());
-                    audit.system(repository, AuditOperation.INCIDENT_CREATED, AuditTargetType.INCIDENT,
+                    event = audit.system(repository, AuditOperation.INCIDENT_CREATED, AuditTargetType.INCIDENT,
                             incident.getId(), "Incident opened from a scan finding");
                 } else {
                     if (normalized.severity().ordinal() < incident.getSeverity().ordinal()) {
@@ -72,11 +78,16 @@ public class FindingPersistenceService implements FindingResultSink {
                         incident.setReviewReason(null);
                         incident.setLastActorType(AuditActorType.SYSTEM);
                         incident.setLastActorReference(null);
-                        audit.system(repository, AuditOperation.INCIDENT_REOPENED, AuditTargetType.INCIDENT,
+                        event = audit.system(repository, AuditOperation.INCIDENT_REOPENED, AuditTargetType.INCIDENT,
                                 incident.getId(), "Resolved incident reopened by a new occurrence");
+                    } else {
+                        event = audit.system(repository, AuditOperation.INCIDENT_OCCURRENCE,
+                                AuditTargetType.INCIDENT, incident.getId(),
+                                "New finding occurrence linked to incident");
                     }
                     incidents.saveAndFlush(incident);
                 }
+                incidentEvents.add(java.util.Map.entry(incident, event));
                 newFindings.add(Finding.builder()
                         .scan(scan)
                         .incident(incident)
@@ -92,6 +103,9 @@ public class FindingPersistenceService implements FindingResultSink {
         }
         if (!newFindings.isEmpty()) {
             findings.saveAllAndFlush(newFindings);
+            for (var incidentEvent : incidentEvents) {
+                outbox.queue(incidentEvent.getKey(), incidentEvent.getValue());
+            }
         }
     }
 }

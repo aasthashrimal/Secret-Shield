@@ -148,11 +148,11 @@ Depends on M06–M08. The GitHub gate is enforced by M12; the backend records an
 
 Depends on M08. Implement locally with a fake provider first; live Azure validation depends on M14.
 
-- [ ] **M10.1 — Member 1:** Define high-risk severity threshold, authorized recipient configuration, event identity, payload, and deduplication policy. Add notification-delivery records. **Done when:** retries/repeated scan imports cannot create uncontrolled duplicate alerts.
-- [ ] **M10.2 — Member 1:** Implement provider interface plus local fake provider and queued/outbox delivery after transaction commit. Track retryable failures with bounded retry behavior. **Done when:** notification failure does not roll back findings or alter the gate.
-- [ ] **M10.3 — Member 1:** Implement the ACS provider with externalized credentials and sanitized alert content: repository, severity, incident link, and remediation guidance. Include safe delivery status in APIs. **Done when:** tests prove no secret values/tokens enter messages or logs.
+- [x] **M10.1 — Member 1:** Define high-risk severity threshold, authorized recipient configuration, event identity, payload, and deduplication policy. Add notification-delivery records. **Done when:** retries/repeated scan imports cannot create uncontrolled duplicate alerts.
+- [x] **M10.2 — Member 1:** Implement provider interface plus local fake provider and queued/outbox delivery after transaction commit. Track retryable failures with bounded retry behavior. **Done when:** notification failure does not roll back findings or alter the gate.
+- [x] **M10.3 — Member 1:** Implement the ACS provider with externalized credentials and sanitized alert content: repository, severity, incident link, and remediation guidance. Include safe delivery status in APIs. **Done when:** tests prove no secret values/tokens enter messages or logs.
 - [ ] **M10.4 — Member 1:** After M14, configure an approved test recipient and the required ACS sender/domain/channel setup; verify a real high-risk notification plus a failure/retry case. **Done when:** sanitized evidence identifies actual success separately from fake-provider success.
-- [ ] **M10.5 — Member 2:** Write notification help text and capture reviewed delivery evidence for the report. **Done when:** documented behavior matches the configured threshold and retry policy.
+- [x] **M10.5 — Member 2 (completed by Member 1 under solo scope):** Write notification help text and capture reviewed delivery evidence for the report. **Done when:** documented behavior matches the configured threshold and retry policy. **Local evidence:** `docs/notification-guide.md` records the fake-provider checks and report fields; live ACS evidence remains M10.4.
 
 ## M11 — Dashboard APIs and React frontend
 
@@ -240,8 +240,9 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration) through M07 are complete under
-the solo workflow. The next implementation module is M08 incidents, audit, and history.
+Modules M00 (except deferred GitHub collaboration) through M09 are complete under
+the solo workflow. M10 local implementation is complete; M10.4 awaits live Azure
+validation after M14. The next implementation module is M11.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
@@ -256,3 +257,5 @@ Module 05 completion record (12 October 2026): M05.1-M05.5 implemented and verif
 Module 06 completion record (15 October 2026): M06.1-M06.6 implemented and verified by Member 1 for this complete-module request. Gitleaks 8.30.0 clean/finding/failure fixture runs passed, along with 65 executed default tests and 117 executed disposable PostgreSQL tests; four opt-in real-scanner tests passed separately. M07 is next.
 
 Module 07 completion record (15 October 2026): M07.1-M07.5 implemented and verified by Member 1 for this complete-module request. V7 finding persistence, severity/fingerprint policy, safe APIs, retry/later-occurrence behavior, and owner/admin isolation passed 68 executed default tests and 123 executed disposable PostgreSQL tests; four opt-in real-scanner tests remain separately gated. M08 is next.
+
+Module 10 local completion record (15 October 2026): M10.1-M10.3 and M10.5 implemented by Member 1 under the solo workflow. V9 notification outbox, fake and ACS providers, safe history API, retry/deduplication, and ownership checks passed the disposable PostgreSQL suite (144 tests, 0 failures/errors, 4 opt-in scanner tests skipped) and the default suite. A UTC timestamp offset exposed by retry timing tests was corrected for new writes. M10.4 remains open until M14 supplies a verified ACS sender/domain and approved test recipient; fake-provider `SENT` is not live delivery evidence.
