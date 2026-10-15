@@ -9,8 +9,8 @@ and actual outcomes, and sanitized evidence; omit secrets, tokens and raw report
 | --- | --- | --- |
 | Reproducible backend foundation | Java 21-targeted compile/start, unit suite, isolated PostgreSQL suite, fresh/legacy migration preservation | M00–M04; 57 database-independent and 99 full tests verified |
 | Authentication and roles | Registration/login/me, invalid/expired tokens, developer/admin negative access tests | M02/M03 verified; resource-specific ownership suites extend this in M04+ |
-| Repository and scan management | Two-user ownership, validated metadata, scan transitions, idempotent CI result ingestion | M04/M05 verified; 110-test full suite |
-| Credential detection | Pinned real Gitleaks runs for clean/synthetic-secret/error fixtures; safe normalized outputs | M06/M07 pending |
+| Repository and scan management | Two-user ownership, validated metadata, scan transitions, idempotent CI result ingestion | M04–M06 verified; current full suite has 117 executed tests plus four opt-in real-scanner tests |
+| Credential detection | Pinned real Gitleaks runs for clean/synthetic-secret/error fixtures; safe normalized outputs | M06 local detection and sanitization verified; M07 finding persistence/severity pending |
 | Severity and findings | Deterministic mapping/fallback, retained occurrences, authorized filters, no raw secret fields | M07 pending |
 | Automated GitHub scanning | Push/PR starts scanner for the correct branch/commit; authenticated sanitized submission | M12 pending |
 | Security gate | Clean exact commit allowed; finding/error/timeout/missing result blocks; pipeline cannot bypass on API outage | M09/M12 pending |

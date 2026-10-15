@@ -6,7 +6,7 @@ function Import-LocalEnvironment {
     }
     $values = @{}
     foreach ($line in [IO.File]::ReadAllLines($path)) {
-        if ($line -match '^\s*(DB_URL|DB_USERNAME|DB_PASSWORD|JWT_SECRET|FRONTEND_ORIGIN)\s*=(.*)$') {
+        if ($line -match '^\s*(DB_URL|DB_USERNAME|DB_PASSWORD|JWT_SECRET|FRONTEND_ORIGIN|SCANNER_WORKSPACE|GITLEAKS_PATH|GITLEAKS_CONFIG_PATH|SCANNER_TIMEOUT_SECONDS)\s*=(.*)$') {
             $name = $Matches[1]
             $value = $Matches[2].Trim()
             if ($value.Length -ge 2 -and (($value.StartsWith('"') -and $value.EndsWith('"')) -or
@@ -23,7 +23,10 @@ function Import-LocalEnvironment {
         throw 'JWT_SECRET must contain at least 32 UTF-8 bytes in private .env.'
     }
     # Never evaluate shell code, expand values, or print credentials.
-    foreach ($name in @('DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'FRONTEND_ORIGIN')) {
-        [Environment]::SetEnvironmentVariable($name, $values[$name], 'Process')
+    foreach ($name in @('DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'FRONTEND_ORIGIN',
+            'SCANNER_WORKSPACE', 'GITLEAKS_PATH', 'GITLEAKS_CONFIG_PATH', 'SCANNER_TIMEOUT_SECONDS')) {
+        if ($values.ContainsKey($name) -and -not [string]::IsNullOrWhiteSpace($values[$name])) {
+            [Environment]::SetEnvironmentVariable($name, $values[$name], 'Process')
+        }
     }
 }

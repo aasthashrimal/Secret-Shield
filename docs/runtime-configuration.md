@@ -2,7 +2,7 @@
 
 The default profile is local. Shared configuration contains environment references
 only. `.env` is ignored and is not loaded automatically by Spring Boot;
-`scripts/start-local.ps1` privately loads its four core backend values plus optional FRONTEND_ORIGIN.
+`scripts/start-local.ps1` privately loads its core backend values plus optional frontend and scanner settings.
 See [local setup](local-setup.md).
 
 | Profile | Database | Schema policy | JWT secret |

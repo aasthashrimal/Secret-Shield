@@ -51,11 +51,11 @@ Copy the displayed value only into your private `.env`. Never paste credentials,
 JWTs, logs containing tokens, or database backups into commits or screenshots.
 Keep the same key across restarts unless intentionally invalidating existing tokens.
 
-The startup script reads only the four core backend values and optional FRONTEND_ORIGIN as literal strings,
+The startup script reads the core backend values plus optional frontend and M06 scanner settings as literal strings,
 without evaluating shell code. It replaces stale inherited values for its child
 process. It accepts optional matching outer quotes; inline comments and variable
 substitution are not supported. Spring Boot does not load `.env` when started directly
-through Maven or an IDE. For IDE startup, configure the same core environment values and optional FRONTEND_ORIGIN
+through Maven or an IDE. For IDE startup, configure the same values
 privately in the run configuration.
 
 ## Database and startup

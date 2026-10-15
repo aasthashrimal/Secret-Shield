@@ -1,0 +1,12 @@
+title = "Secret Shield Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# This unmistakably synthetic rule makes the isolated M06 fixture deterministic.
+# It does not resemble a credential accepted by any external service.
+[[rules]]
+id = "secret-shield-synthetic"
+description = "Secret Shield synthetic verification marker"
+regex = '''SECRET_SHIELD_SYNTHETIC_[A-Z0-9]{24}'''
+keywords = ["SECRET_SHIELD_SYNTHETIC_"]
