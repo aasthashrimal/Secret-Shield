@@ -13,11 +13,11 @@ and actual outcomes, and sanitized evidence; omit secrets, tokens and raw report
 | Credential detection | Pinned real Gitleaks runs for clean/synthetic-secret/error fixtures; safe normalized outputs | M06 local detection and M07 persistence/sanitization verified |
 | Severity and findings | Deterministic mapping/fallback, retained occurrences, authorized filters, no raw secret fields | M07 verified; current full suite has 123 executed tests plus four opt-in scanner tests |
 | Automated GitHub scanning | Push/PR starts scanner for the correct branch/commit; authenticated sanitized submission | M12 pending |
-| Security gate | Clean exact commit allowed; finding/error/timeout/missing result blocks; pipeline cannot bypass on API outage | M09/M12 pending |
+| Security gate | Clean exact commit allowed; finding/error/timeout/missing result blocks; pipeline cannot bypass on API outage | M09 backend implemented; M12 pipeline pending |
 | Dashboard | Live authorized repository/scan/finding/incident views, filters, empty/loading/error states | M11 pending |
 | Incident lifecycle | OPEN/RESOLVED/IGNORED reasons, concurrency checks, recurrence/reopening, review does not bypass gate | M08 pending |
 | Audit and history | Append-only typed actor/repository events, ordered authorized views, no confidential payloads | M08/M11 pending |
-| High-risk notifications | Azure Communication Services synthetic HIGH/CRITICAL alert, safe recipient configuration, retries/dedup, retained delivery status | M10 pending |
+| High-risk notifications | Azure Communication Services synthetic HIGH/CRITICAL alert, safe recipient configuration, retries/dedup, retained delivery status | M10 local implementation and fake-provider checks; live Azure evidence M10.4 pending M14 |
 | Containers | Reproducible image/full-stack startup, migrations, restart persistence, no secrets copied to image | M13 pending |
 | Azure infrastructure | Reviewed Terraform plan/state protection, documented resources and HTTPS access | M14/M15 pending |
 | Deployment and operations | Correct image/commit deployed, readiness/configuration, alerts/log redaction, rollback evidence | M15 pending |

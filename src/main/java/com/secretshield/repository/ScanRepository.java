@@ -8,4 +8,5 @@ public interface ScanRepository extends JpaRepository<Scan,Long>, JpaSpecificati
  @Query("select scan from Scan scan where scan.id=:id")
  Optional<Scan> findLockedById(@Param("id") Long id);
  Optional<Scan> findByRepositoryIdAndRunIdAndRunAttemptAndCommitSha(Long repositoryId,String runId,Integer runAttempt,String commitSha);
+ Optional<Scan> findFirstByRepositoryIdAndCommitShaOrderByCreatedAtDescIdDesc(Long repositoryId,String commitSha);
 }

@@ -18,8 +18,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        jdbc:
-          time_zone: UTC
 
   flyway:
     locations: classpath:db/migration
@@ -43,6 +41,14 @@ secretshield:
     timeout-seconds: ${SCANNER_TIMEOUT_SECONDS:60}
     max-report-bytes: 5242880
     max-log-bytes: 65536
+  notifications:
+    provider: ${NOTIFICATION_PROVIDER:disabled}
+    recipients: ${NOTIFICATION_RECIPIENTS:}
+    public-base-url: ${NOTIFICATION_PUBLIC_BASE_URL:http://localhost:8080}
+    scheduled: ${NOTIFICATION_SCHEDULED:true}
+    acs:
+      connection-string: ${ACS_CONNECTION_STRING:}
+      sender: ${ACS_SENDER_ADDRESS:}
 
 jwt:
   secret: ${JWT_SECRET:}

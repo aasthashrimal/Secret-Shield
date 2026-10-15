@@ -98,4 +98,10 @@ For recovery, stop the app and restore into a **new empty recovery database** wi
 matching PostgreSQL tooling, then verify its rows/schema before changing DB_URL.
 Use `pg_restore -h localhost -U postgres -W -d <new-recovery-database> <backup-file>`.
 Do not use `--clean` against your working database or delete it to troubleshoot.
-Do not edit applied V1–V7 scripts; future changes need new versioned migrations.
+Do not edit applied V1–V9 scripts; future changes need new versioned migrations.
+
+V9 extends the audit operation allowlist with `INCIDENT_OCCURRENCE` and adds the
+notification outbox. A unique audit-event/recipient-alias key prevents duplicate
+delivery records, and database checks bound attempts to three and constrain valid
+states. It stores recipient aliases and safe failure codes, never email addresses
+or provider credentials.

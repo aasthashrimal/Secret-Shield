@@ -2,7 +2,8 @@
 
 The default profile is local. Shared configuration contains environment references
 only. `.env` is ignored and is not loaded automatically by Spring Boot;
-`scripts/start-local.ps1` privately loads its core backend values plus optional frontend and scanner settings.
+`scripts/start-local.ps1` privately loads its core backend values plus optional frontend,
+scanner, and notification settings.
 See [local setup](local-setup.md).
 
 | Profile | Database | Schema policy | JWT secret |
@@ -16,12 +17,17 @@ introduced in Modules 0/1. Flyway baseline-on-migrate is false, clean is disable
 and adoption is false by default. See [migration procedures](database-migrations.md).
 
 `spring.jpa.open-in-view` is false. Persistence work and lazy loading belong inside
-service transactions; controllers return safe DTOs. JDBC timezone is UTC and SQL
-logging is disabled. JPA @PrePersist sets createdAt/updatedAt to the same UTC value;
+service transactions; controllers return safe DTOs. SQL logging is disabled.
+The application generates UTC `LocalDateTime` values and stores them directly as
+timestamp-without-time-zone values. A JDBC timezone override would shift these
+values again on machines outside UTC. JPA @PrePersist sets createdAt/updatedAt to the same UTC value;
 @PreUpdate changes only updatedAt. Neither timestamp has a public setter and
 createdAt is not updatable by Hibernate. Bulk SQL/JPQL bypass these callbacks.
 
 Storage remains TIMESTAMP(6) WITHOUT TIME ZONE, represented by LocalDateTime.
+Older records written before the JDBC override was removed may have an offset
+that depends on the writer's local timezone. Do not mass-shift existing rows
+without a verified backup and knowledge of the original writer timezone.
 V2 backfills missing updated_at from created_at and enforces NOT NULL. Historical
 creation values are preserved without guessing their timezone. New timestamps are UTC;
 future timestamp DTOs must emit ISO-8601 UTC with Z as specified in the API contract.

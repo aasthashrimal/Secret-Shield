@@ -2,15 +2,16 @@
 
 Prepared by Member 1 on 11 October 2026 for M01.6.
 
-The implemented model below is checked against the Java entities and V1–V8 migrations,
+The implemented model below is checked against the Java entities and V1–V9 migrations,
 DTOs, configuration, and PostgreSQL integration tests. The future model is the
 finalized M01.1 design in [api-contract.md](api-contract.md), based on the scope in
 [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) and [MODULE_TODO.md](../MODULE_TODO.md).
-Notification delivery remains planned for M10.
+M10 adds notification-delivery records and an authorized history API.
 
-## Implemented entities through M08
+## Implemented entities through M10
 
-`User`, `ProjectRepository`, `Scan`, `CiCredential`, `Finding`, `Incident`, and `AuditEvent` are migration-backed.
+`User`, `ProjectRepository`, `Scan`, `CiCredential`, `Finding`, `Incident`,
+`AuditEvent`, and `NotificationDelivery` are migration-backed.
 Ownership flows from User to ProjectRepository and all nested scan/finding resources.
 Foreign keys use `ON DELETE RESTRICT` so security evidence is retained.
 
@@ -125,7 +126,7 @@ Historical timezone conversion is intentionally not performed. The runner's
 
 ## Current and future entities and relationships
 
-Entities through Incident and AuditEvent exist in the following diagram. Notification delivery remains planned. Field names, cardinality, ID types and integrity policies
+All entities in the following diagram exist. Field names, cardinality, ID types and integrity policies
 match the M01.1 contract. Each later module supplies its own physical DDL/constraint
 names. `long`, `string`, and
 `datetime` are logical types, not SQL syntax. DTO resource IDs are decimal strings.
@@ -139,7 +140,7 @@ names. `long`, `string`, and
 | Incident | Repository-scoped review record grouping repeated finding occurrences | Implemented M08 |
 | CiCredential | Repository-scoped hashed machine credential, expiry and revocation | Implemented M05 |
 | AuditEvent | Append-only repository history with operation, actor, time, and safe change summary | Implemented M08 |
-| NotificationDelivery | Delivery outcome/retry evidence for an incident event and recipient configuration | M10.1 |
+| NotificationDelivery | Delivery outcome/retry evidence for an incident event and recipient configuration | Implemented M10 |
 
 ```mermaid
 erDiagram
@@ -188,7 +189,7 @@ erDiagram
     FINDING {
         long id PK
         long scanId FK
-        long incidentId FK "Nullable until incident linkage"
+        long incidentId FK
         string fingerprint
         string ruleId
         string severity
@@ -239,16 +240,17 @@ erDiagram
         string status
         int attemptCount
         string safeErrorCode
+        datetime nextAttemptAt
+        datetime leaseUntil
         datetime createdAt
         datetime updatedAt
     }
 ```
 
 `||` means exactly one, `o|` means zero or one, and `o{` means zero or many.
-For example, each proposed scan has one repository; a repository may have no scans.
-A finding has one scan and, in this proposed direct-FK design, at most one incident;
-an incident groups occurrences from multiple scans. Optional linkage allows finding
-ingestion to precede incident creation. The chosen representation is a direct
+For example, each scan has one repository; a repository may have no scans.
+A finding has one scan and one incident; an incident groups occurrences from
+multiple scans. The chosen representation is a direct
 Finding.incidentId foreign key, not a many-to-many occurrence table.
 
 Audit actorType selects exactly one nullable actor FK: USER uses actorUserId,
@@ -287,7 +289,10 @@ diagram and invariants match the finalized API contract, including the incident
 link, machine credential actor model, notification event reference, and severity policy.
 Fresh/existing migration tests preserve users and backfill timestamps. M02 normalizes
 email; M03 constrains and normalizes roles without silently promoting unknown values.
-DTO exposure omits hashes/secret material. Notification delivery remains a future table and API.
+DTO exposure omits hashes/secret material. V9 implements notification delivery
+records keyed by audit event and private recipient alias, with a bounded attempt
+count, safe error code, due time, and send lease. The authorized history API returns
+delivery metadata without recipient addresses.
 
 M02 adds V3 email normalization and collision refusal while retaining existing
 identities and hashes. M03 adds V4 and maps role to `UserRole`. GET /api/auth/me

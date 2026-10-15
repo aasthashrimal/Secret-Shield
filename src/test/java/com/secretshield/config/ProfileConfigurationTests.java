@@ -25,7 +25,7 @@ class ProfileConfigurationTests {
             assertThat(env.getProperty("spring.datasource.url")).endsWith("/synthetic_local");
             assertThat(env.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
             assertThat(env.getProperty("spring.jpa.open-in-view", Boolean.class)).isFalse();
-            assertThat(env.getProperty("spring.jpa.properties.hibernate.jdbc.time_zone")).isEqualTo("UTC");
+            assertThat(env.getProperty("spring.jpa.properties.hibernate.jdbc.time_zone")).isNull();
         });
     }
 
