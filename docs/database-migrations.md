@@ -30,6 +30,9 @@ M05 adds V6 with restrictive repository foreign keys for `scans` and
 `ci_credentials`, controlled state/trigger checks, CI identity uniqueness, replay
 digests, credential hashes, expiry/revocation timestamps, and list indexes.
 
+M07 adds V7 for immutable sanitized finding occurrences, severity and fingerprint
+constraints, per-scan deduplication, and finding query indexes.
+
 ## Fresh database
 
 Create an empty database with your local PostgreSQL tools, configure `.env`, and
@@ -89,4 +92,4 @@ For recovery, stop the app and restore into a **new empty recovery database** wi
 matching PostgreSQL tooling, then verify its rows/schema before changing DB_URL.
 Use `pg_restore -h localhost -U postgres -W -d <new-recovery-database> <backup-file>`.
 Do not use `--clean` against your working database or delete it to troubleshoot.
-Do not edit applied V1–V6 scripts; future changes need new versioned migrations.
+Do not edit applied V1–V7 scripts; future changes need new versioned migrations.

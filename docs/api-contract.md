@@ -1,8 +1,8 @@
 # Secret Shield API contract
 
 Foundation contract finalized by Member 1 on 11 October 2026 (M01.1).
-Authentication, health, roles, errors, and repository management are implemented.
-Scan, finding, incident, dashboard, notification, and gate contracts below remain
+Authentication, health, roles, errors, repository, scan, and finding management are implemented.
+Incident, dashboard, notification, and gate contracts below remain
 implementation targets for later modules; documenting an endpoint does not make it available.
 
 ## Error responses
@@ -120,7 +120,7 @@ in this first version. Notification lists accept `status`; audit lists accept
 
 ## Entities, ownership and integrity
 
-`User` and `ProjectRepository` are currently implemented. [data-model.md](data-model.md)
+`User`, `ProjectRepository`, `Scan`, `CiCredential`, and `Finding` are currently implemented. [data-model.md](data-model.md)
 distinguishes the migration-backed current schema from future entities. Remaining
 tables/fields below are finalized design targets for their own modules' migrations.
 
@@ -213,8 +213,8 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | POST `/api/repositories/{id}/ci-credentials` | Owner/admin | 201, id plus one-time issued credential | Implemented M05 |
 | POST `/api/repositories/{id}/ci-credentials/{credentialId}/revoke` | Owner/admin | 204; idempotent | Implemented M05 |
 | POST `/api/ci/repositories/{id}/scan-results` | Repository machine credential only | 201 first import, 200 identical replay, ScanDto | Implemented M05; findings persist in M07 |
-| GET `/api/repositories/{id}/scans/{scanId}/findings` | Owner/admin | 200, Page<FindingDto> | Planned M07 |
-| GET `/api/repositories/{id}/findings/{findingId}` | Owner/admin | 200, FindingDto | Planned M07 |
+| GET `/api/repositories/{id}/scans/{scanId}/findings` | Owner/admin | 200, Page<FindingDto> | Implemented M07 |
+| GET `/api/repositories/{id}/findings/{findingId}` | Owner/admin | 200, FindingDto | Implemented M07 |
 | GET `/api/repositories/{id}/incidents` | Owner/admin | 200, Page<IncidentDto> | Planned M08 |
 | GET `/api/repositories/{id}/incidents/{incidentId}` | Owner/admin | 200, IncidentDto | Planned M08 |
 | PATCH `/api/repositories/{id}/incidents/{incidentId}` | Owner/admin; ignore admin-only | 200, IncidentDto; status/reason/version | Planned M08 |

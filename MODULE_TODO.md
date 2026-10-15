@@ -118,11 +118,11 @@ Depends on M05. First scan controlled local test repositories; do not expose unr
 
 Depends on M06.
 
-- [ ] **M07.1 — Member 1:** Add Finding schema, safe DTOs, stable identity/fingerprint rules, and rule-to-severity mapping with a documented fallback for unknown rules. Do not claim Gitleaks supplies the project's severity policy. **Done when:** every finding has safe location/rule metadata and deterministic severity.
-- [ ] **M07.2 — Member 1:** Persist normalized findings transactionally with final scan results; update M05 ingestion to share the same normalization/persistence rules. Deduplicate retries while retaining occurrences in later scans. **Done when:** imports are repeatable and counts match stored findings.
-- [ ] **M07.3 — Member 1:** Add authorized paginated list/detail endpoints and repository/scan/severity/rule filters. **Done when:** DTOs contain no raw secrets and nested ownership checks pass.
-- [ ] **M07.4 — Member 1:** Test severity fallback, deduplication, safe output, repeated-scan occurrences, and owner isolation. **Done when:** malformed or sensitive input cannot leak into stored/displayed fields.
-- [ ] **M07.5 — Member 2:** Prepare severity badge text, findings-table labels, and synthetic fixtures from the finalized DTOs. **Done when:** all severities and empty/error states have consistent presentation.
+- [x] **M07.1 — Member 1:** Add Finding schema, safe DTOs, stable identity/fingerprint rules, and rule-to-severity mapping with a documented fallback for unknown rules. Do not claim Gitleaks supplies this project's severity policy. **Done when:** every finding has safe location/rule metadata and deterministic severity. **Verified 15 October 2026:** V7, `Finding`, `Severity`, and safe `FindingDto` implement immutable per-scan occurrences. Fingerprint v1 matches the documented repository/rule/path/line SHA-256 contract; the five-level project mapping and HIGH fallback are deterministic and tested.
+- [x] **M07.2 — Member 1:** Persist normalized findings transactionally with final scan results; update M05 ingestion to share the same normalization/persistence rules. Deduplicate retries while retaining occurrences in later scans. **Done when:** imports are repeatable and counts match stored findings. **Verified 15 October 2026:** `FindingPersistenceService` is the shared `FindingResultSink` for CI and local scans, replaces caller descriptions with fixed safe text, collapses duplicate fingerprints within a scan, skips existing scan fingerprints, and retains the same fingerprint as a new occurrence in later scans. CI scan plus findings commit atomically; invalid metadata rolls back both.
+- [x] **M07.3 — Member 1:** Add authorized paginated list/detail endpoints and repository/scan/severity/rule filters. **Done when:** DTOs contain no raw secrets and nested ownership checks pass. **Verified 15 October 2026:** implemented protected paginated scan findings and repository finding detail endpoints, exact severity/rule plus UTC date filters, controlled sorting, owner/admin access, and nested repository/scan/finding identity checks.
+- [x] **M07.4 — Member 1:** Test severity fallback, deduplication, safe output, repeated-scan occurrences, and owner isolation. **Done when:** malformed or sensitive input cannot leak into stored/displayed fields. **Verified 15 October 2026:** 68 default tests executed successfully (four opt-in scanner tests skipped); 123 tests executed successfully against disposable PostgreSQL (the same four opt-in tests skipped). M07 tests cover every severity, fixed fingerprint, unknown fallback, duplicate/replay behavior, later occurrences, raw-field rejection, rollback, safe output, filters, admin access, owner denial, and nested mismatch.
+- [x] **M07.5 — Member 1 (taking the documentation task for this complete-module request):** Prepare severity badge text, findings-table labels, and synthetic fixtures from the finalized DTOs. **Done when:** all severities and empty/error states have consistent presentation. **Verified 15 October 2026:** `docs/finding-presentation.md` defines all badge labels, table/detail fields, safe synthetic data, empty/error behavior, and the rule that every severity still blocks deployment.
 
 ## M08 — Incident management, audit and history
 
@@ -240,8 +240,8 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration) through M06 are complete under
-the solo workflow. The next implementation module is M07 findings and severity.
+Modules M00 (except deferred GitHub collaboration) through M07 are complete under
+the solo workflow. The next implementation module is M08 incidents, audit, and history.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
@@ -254,3 +254,5 @@ Module 04 completion record (12 October 2026): M04.1-M04.4 implemented by Member
 Module 05 completion record (12 October 2026): M05.1-M05.5 implemented and verified by Member 1. Current suites pass 60 database-independent and 110 full disposable PostgreSQL tests. V6 will migrate the configured development database on its next normal startup; M06 is next.
 
 Module 06 completion record (15 October 2026): M06.1-M06.6 implemented and verified by Member 1 for this complete-module request. Gitleaks 8.30.0 clean/finding/failure fixture runs passed, along with 65 executed default tests and 117 executed disposable PostgreSQL tests; four opt-in real-scanner tests passed separately. M07 is next.
+
+Module 07 completion record (15 October 2026): M07.1-M07.5 implemented and verified by Member 1 for this complete-module request. V7 finding persistence, severity/fingerprint policy, safe APIs, retry/later-occurrence behavior, and owner/admin isolation passed 68 executed default tests and 123 executed disposable PostgreSQL tests; four opt-in real-scanner tests remain separately gated. M08 is next.

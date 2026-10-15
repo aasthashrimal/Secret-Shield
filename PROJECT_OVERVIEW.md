@@ -92,7 +92,7 @@ M00–M01 and M13–M16 provide collaboration, persistence, containerization, in
 
 ## Backend model summary
 
-These future entities follow the finalized M01 contract; only User is implemented. See docs/data-model.md for the complete ER diagram.
+The current backend implements User, ProjectRepository, Scan, CiCredential, and Finding. Later entities follow the finalized M01 contract; see docs/data-model.md for the complete ER diagram.
 
 | Entity | Key fields and relationships |
 | --- | --- |
