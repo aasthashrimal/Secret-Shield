@@ -143,8 +143,16 @@ try {
     try {
         $mavenArgs = @('-Ppostgres-tests', 'test')
         if ($Offline) { $mavenArgs = @('-o') + $mavenArgs }
-        & (Join-Path $workspace 'mvnw.cmd') @mavenArgs
-        $exitCode = $LASTEXITCODE
+        # Maven and Mockito may write warnings to stderr even when tests pass.
+        # Preserve Maven's exit code instead of treating that output as a script error.
+        $previousErrorAction = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            & (Join-Path $workspace 'mvnw.cmd') @mavenArgs
+            $exitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $previousErrorAction
+        }
     } finally { Pop-Location }
 } finally {
     # Even a failed startup may leave a server running; stop only this new cluster.

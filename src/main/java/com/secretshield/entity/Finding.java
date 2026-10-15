@@ -40,6 +40,10 @@ public class Finding {
     @JoinColumn(name = "scan_id", nullable = false, updatable = false)
     private Scan scan;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "incident_id", nullable = false, updatable = false)
+    private Incident incident;
+
     @Column(nullable = false, length = 64, updatable = false)
     private String fingerprint;
 

@@ -60,7 +60,7 @@ class FindingManagementIT extends PostgresApiTest {
                 .andExpect(jsonPath("$.content[0].severity").value("LOW"))
                 .andExpect(jsonPath("$.content[0].filePath").value("config/demo.txt"))
                 .andExpect(jsonPath("$.content[0].line").value(2))
-                .andExpect(jsonPath("$.content[0].incidentId").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.content[0].incidentId").isNotEmpty())
                 .andExpect(jsonPath("$.content[0].sanitizedDescription")
                         .value("Potential secret detected by rule synthetic-low"))
                 .andReturn();

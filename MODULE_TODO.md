@@ -128,12 +128,12 @@ Depends on M06.
 
 Depends on M07.
 
-- [ ] **M08.1 — Member 1:** Add Incident model and stable repository/finding linkage. Create one Open incident for a new identity and link later occurrences; define reopening when a remediated finding recurs. **Done when:** repeated imports do not create duplicate incidents.
-- [ ] **M08.2 — Member 1:** Implement authorized Open/Resolved/Ignored transitions with reason, actor, timestamp, and concurrency protection. Define who may ignore and what evidence resolution requires. **Done when:** invalid transitions fail and recorded review status never changes a scanner result.
-- [ ] **M08.3 — Member 1:** Add append-only audit events for repository changes, scans, incident transitions, and relevant admin actions. Use transactions for state changes plus audit writes; distinguish user/system/machine actors. **Done when:** committed actions have attributable history without secret values.
-- [ ] **M08.4 — Member 1:** Add authorized paginated incident and audit-history APIs with repository/status/date filters. **Done when:** users cannot retrieve another owner's history or modify audit records through an API.
-- [ ] **M08.5 — Member 1:** Test incident creation/reopening, transitions, concurrent changes, audit completeness, retry behavior, and ownership. **Done when:** the lifecycle and history match the contract.
-- [ ] **M08.6 — Member 2:** Write incident workflow help text and manual scenarios for resolution, ignoring, recurrence, and history. **Done when:** documentation explains that leaked credentials require external rotation/revocation and that ignoring does not unblock deployment.
+- [x] **M08.1 — Member 1:** Add Incident model and stable repository/finding linkage. Create one Open incident for a new identity and link later occurrences; define reopening when a remediated finding recurs. **Done when:** repeated imports do not create duplicate incidents.
+- [x] **M08.2 — Member 1:** Implement authorized Open/Resolved/Ignored transitions with reason, actor, timestamp, and concurrency protection. Define who may ignore and what evidence resolution requires. **Done when:** invalid transitions fail and recorded review status never changes a scanner result.
+- [x] **M08.3 — Member 1:** Add append-only audit events for repository changes, scans, incident transitions, and relevant admin actions. Use transactions for state changes plus audit writes; distinguish user/system/machine actors. **Done when:** committed actions have attributable history without secret values.
+- [x] **M08.4 — Member 1:** Add authorized paginated incident and audit-history APIs with repository/status/date filters. **Done when:** users cannot retrieve another owner's history or modify audit records through an API.
+- [x] **M08.5 — Member 1:** Test incident creation/reopening, transitions, concurrent changes, audit completeness, retry behavior, and ownership. **Done when:** the lifecycle and history match the contract.
+- [x] **M08.6 — Member 2:** Write incident workflow help text and manual scenarios for resolution, ignoring, recurrence, and history. **Done when:** documentation explains that leaked credentials require external rotation/revocation and that ignoring does not unblock deployment.
 
 ## M09 — Security gate and deployment prevention
 

@@ -22,7 +22,7 @@ public record FindingDto(
         return new FindingDto(
                 finding.getId().toString(),
                 finding.getScan().getId().toString(),
-                null,
+                finding.getIncident() == null ? null : finding.getIncident().getId().toString(),
                 finding.getFingerprint(),
                 finding.getRuleId(),
                 finding.getSeverity().name(),

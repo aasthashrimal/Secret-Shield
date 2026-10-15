@@ -14,6 +14,8 @@ import com.secretshield.dto.RepositoryCreateRequest;
 import com.secretshield.dto.RepositoryDto;
 import com.secretshield.dto.RepositoryUpdateRequest;
 import com.secretshield.entity.ProjectRepository;
+import com.secretshield.entity.AuditOperation;
+import com.secretshield.entity.AuditTargetType;
 import com.secretshield.entity.User;
 import com.secretshield.entity.UserRole;
 import com.secretshield.exception.ConflictException;
@@ -28,11 +30,13 @@ import jakarta.validation.ConstraintViolationException;
 public class ProjectRepositoryService {
     private final ProjectRepositoryRepository repositories;
     private final ResourceAuthorization authorization;
+    private final AuditService audit;
 
     public ProjectRepositoryService(ProjectRepositoryRepository repositories,
-            ResourceAuthorization authorization) {
+            ResourceAuthorization authorization, AuditService audit) {
         this.repositories = repositories;
         this.authorization = authorization;
+        this.audit = audit;
     }
 
     @Transactional
@@ -49,7 +53,10 @@ public class ProjectRepositoryService {
                 .canonicalUrl(GitHubRepositoryMetadata.canonicalUrl(owner, name))
                 .defaultBranch(branch).active(true).build();
         try {
-            return RepositoryDto.from(repositories.saveAndFlush(repository));
+            repositories.saveAndFlush(repository);
+            audit.user(repository, actor, AuditOperation.REPOSITORY_CREATED,
+                    AuditTargetType.REPOSITORY, repository.getId(), "Repository connected");
+            return RepositoryDto.from(repository);
         } catch (DataIntegrityViolationException ex) {
             if (isUniqueViolation(ex)) { throw new ConflictException("Repository already connected"); }
             throw ex;
@@ -78,7 +85,12 @@ public class ProjectRepositoryService {
     @Transactional
     public RepositoryDto update(User actor, long id, RepositoryUpdateRequest request) {
         ProjectRepository repository = loadAuthorized(actor, id);
-        repository.setDefaultBranch(GitHubRepositoryMetadata.defaultBranch(request.defaultBranch()));
+        String branch = GitHubRepositoryMetadata.defaultBranch(request.defaultBranch());
+        if (!repository.getDefaultBranch().equals(branch)) {
+            repository.setDefaultBranch(branch);
+            audit.user(repository, actor, AuditOperation.REPOSITORY_UPDATED,
+                    AuditTargetType.REPOSITORY, repository.getId(), "Default branch changed");
+        }
         return RepositoryDto.from(repositories.saveAndFlush(repository));
     }
 
@@ -88,6 +100,8 @@ public class ProjectRepositoryService {
         if (repository.isActive()) {
             repository.setActive(false);
             repositories.saveAndFlush(repository);
+            audit.user(repository, actor, AuditOperation.REPOSITORY_DEACTIVATED,
+                    AuditTargetType.REPOSITORY, repository.getId(), "Repository deactivated");
         }
     }
 

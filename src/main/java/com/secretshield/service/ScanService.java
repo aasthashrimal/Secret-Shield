@@ -16,13 +16,15 @@ import jakarta.validation.ConstraintViolationException;
 
 @Service
 public class ScanService {
- private final ScanRepository scans; private final ProjectRepositoryService repositories; private final ResourceAuthorization authorization;
- public ScanService(ScanRepository s,ProjectRepositoryService r,ResourceAuthorization a){scans=s;repositories=r;authorization=a;}
+ private final ScanRepository scans; private final ProjectRepositoryService repositories; private final ResourceAuthorization authorization; private final AuditService audit;
+ public ScanService(ScanRepository s,ProjectRepositoryService r,ResourceAuthorization a,AuditService audit){scans=s;repositories=r;authorization=a;this.audit=audit;}
  @Transactional public ScanDto createManual(User actor,long repositoryId,ManualScanRequest request){
   var repo=repositories.loadActiveAuthorized(actor,repositoryId);
   var scan=Scan.builder().repository(repo).branch(strictBranch(request.branch())).commitSha(sha(request.commitSha()))
     .trigger(ScanTrigger.MANUAL).status(ScanStatus.QUEUED).build();
-  return ScanDto.from(scans.saveAndFlush(scan));
+  scans.saveAndFlush(scan);
+  audit.user(repo,actor,AuditOperation.SCAN_CREATED,AuditTargetType.SCAN,scan.getId(),"Manual scan queued");
+  return ScanDto.from(scan);
  }
  @Transactional(readOnly=true) public PageResponse<ScanDto> list(User actor,long repositoryId,int page,int size,String status,String branch,String commit,String from,String to,String sort){
   var repo=repositories.loadAuthorized(actor,repositoryId); validatePage(page,size); ScanStatus state=parseStatus(status);
@@ -36,9 +38,9 @@ public class ScanService {
   return PageResponse.from(scans.findAll(spec,PageRequest.of(page,size,ordering(sort))),ScanDto::from);
  }
  @Transactional(readOnly=true) public ScanDto detail(User actor,long repositoryId,long scanId){return ScanDto.from(load(actor,repositoryId,scanId));}
- @Transactional public Scan markRunning(User actor,long repositoryId,long scanId){var s=load(actor,repositoryId,scanId);transition(s,ScanStatus.RUNNING,null,null);return scans.saveAndFlush(s);}
- @Transactional public Scan complete(User actor,long repositoryId,long scanId,ScanStatus target,String scannerVersion){var s=load(actor,repositoryId,scanId);transition(s,target,scannerVersion,null);return scans.saveAndFlush(s);}
- @Transactional public Scan fail(User actor,long repositoryId,long scanId,String scannerVersion,String failureCode){var s=load(actor,repositoryId,scanId);transition(s,ScanStatus.FAILED,scannerVersion,failure(failureCode));return scans.saveAndFlush(s);}
+ @Transactional public Scan markRunning(User actor,long repositoryId,long scanId){var s=load(actor,repositoryId,scanId);transition(s,ScanStatus.RUNNING,null,null);scans.saveAndFlush(s);audit.user(s.getRepository(),actor,AuditOperation.SCAN_STARTED,AuditTargetType.SCAN,s.getId(),"Manual scan started");return s;}
+ @Transactional public Scan complete(User actor,long repositoryId,long scanId,ScanStatus target,String scannerVersion){var s=load(actor,repositoryId,scanId);transition(s,target,scannerVersion,null);scans.saveAndFlush(s);audit.system(s.getRepository(),AuditOperation.SCAN_COMPLETED,AuditTargetType.SCAN,s.getId(),"Scan completed with status "+target.name());return s;}
+ @Transactional public Scan fail(User actor,long repositoryId,long scanId,String scannerVersion,String failureCode){var s=load(actor,repositoryId,scanId);transition(s,ScanStatus.FAILED,scannerVersion,failure(failureCode));scans.saveAndFlush(s);audit.system(s.getRepository(),AuditOperation.SCAN_FAILED,AuditTargetType.SCAN,s.getId(),"Scan failed");return s;}
  public static void transition(Scan s,ScanStatus target,String version,String failure){
   boolean allowed=s.getStatus()==ScanStatus.QUEUED&&(target==ScanStatus.RUNNING||target==ScanStatus.FAILED)
     ||s.getStatus()==ScanStatus.RUNNING&&(target==ScanStatus.CLEAN||target==ScanStatus.FINDINGS_DETECTED||target==ScanStatus.FAILED);

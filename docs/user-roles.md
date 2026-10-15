@@ -16,7 +16,7 @@ is ignored and cannot grant administrator access.
 | Read or mutate another user's repository resources | No, JSON 403 | Yes |
 | Use a nested scan/finding/incident under the wrong repository URL | No, JSON 404 after parent access is verified | No, JSON 404 |
 | Inspect a user through `GET /api/admin/users/{id}` | No, JSON 403 | Yes, safe four-field summary only |
-| Ignore an incident | No | Yes (when M08 implements incidents) |
+| Ignore an incident | No | Yes |
 | Issue/revoke repository CI credentials | Owned repositories only | Any authorized repository |
 | Change repository ownership | No | No; ownership is immutable in the current contract |
 | Assign a role through public APIs | No | No; bootstrap is an operational procedure |

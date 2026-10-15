@@ -69,8 +69,9 @@ class LocalScanExecutionServiceTests {
         ProjectRepositoryService repositories = mock(ProjectRepositoryService.class);
         when(repositories.loadActiveAuthorized(user, 2L)).thenReturn(repository);
         FindingResultSink sink = mock(FindingResultSink.class);
+        AuditService audit = mock(AuditService.class);
         var service = new LocalScanExecutionService(scans, repositories,
-                new ResourceAuthorization(), scanner, List.of(sink), "8.30.0");
+                new ResourceAuthorization(), scanner, List.of(sink), audit, "8.30.0");
         return new Fixture(service, user, scan, sink);
     }
 

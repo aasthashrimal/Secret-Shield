@@ -20,8 +20,8 @@ provide this project's severity policy. Unknown rule IDs use `HIGH`.
 ## Findings table
 
 Use columns `Severity`, `Rule`, `File`, `Line`, `Commit`, and `Detected`. The detail
-view may also show the fingerprint and the fixed sanitized description. An absent
-`incidentId` means incident linkage has not been created yet; M08 supplies that workflow.
+view may also show the fingerprint and the fixed sanitized description. New findings
+have an `incidentId` linking all occurrences of the same repository fingerprint.
 
 Safe synthetic fixture:
 
@@ -29,7 +29,7 @@ Safe synthetic fixture:
 {
   "id": "301",
   "scanId": "201",
-  "incidentId": null,
+  "incidentId": "401",
   "fingerprint": "1a20b5fc9d5e2a9da4a536ff39e12af2910231fed3b7d54978308f3b9a18b01a",
   "ruleId": "synthetic-low",
   "severity": "LOW",

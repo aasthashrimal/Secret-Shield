@@ -33,6 +33,12 @@ digests, credential hashes, expiry/revocation timestamps, and list indexes.
 M07 adds V7 for immutable sanitized finding occurrences, severity and fingerprint
 constraints, per-scan deduplication, and finding query indexes.
 
+M08 adds V8 with one incident per repository and fingerprint, finding linkage,
+optimistic incident versions, restrictive foreign keys, and append-only audit rows
+for user, machine, and system actions. Existing V7 findings are grouped and linked
+into open incidents during migration, with one system audit event per group. New
+occurrences are linked during ingestion.
+
 ## Fresh database
 
 Create an empty database with your local PostgreSQL tools, configure `.env`, and

@@ -78,8 +78,8 @@ class DatabaseMigrationIT extends PostgresApiTest {
         inDisposableSchema(schema -> {
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
             DatabaseMigrationConfig.migrate(schema.flyway(), false);
-            assertEquals("7", schema.flyway().info().current().getVersion().getVersion());
-            assertEquals(7, schema.flyway().info().applied().length);
+            assertEquals("8", schema.flyway().info().current().getVersion().getVersion());
+            assertEquals(8, schema.flyway().info().applied().length);
             try (var statement = schema.connection().createStatement(); var rows = statement.executeQuery(
                     "SELECT is_nullable FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='users' AND column_name='updated_at'")) {
                 assertTrue(rows.next());
@@ -90,6 +90,61 @@ class DatabaseMigrationIT extends PostgresApiTest {
                             + "WHERE constraint_schema=current_schema() AND constraint_name='project_repositories_owner_fk'")) {
                 assertTrue(rows.next());
                 assertEquals("RESTRICT", rows.getString(1));
+            }
+        });
+    }
+
+    @Test void v8BackfillsHistoricalFindingsIntoOneRepositoryIncident() throws Exception {
+        inDisposableSchema(schema -> {
+            String name = schema.connection().getSchema();
+            Flyway throughV7 = Flyway.configure().dataSource(datasource)
+                    .defaultSchema(name).schemas(name).locations("classpath:db/migration")
+                    .target("7").cleanDisabled(true).load();
+            DatabaseMigrationConfig.migrate(throughV7, false);
+            try (var statement = schema.connection().createStatement()) {
+                statement.execute("""
+                    INSERT INTO users (id,username,email,password,role,created_at,updated_at)
+                    VALUES (7001,'legacy-finding','legacy-finding@example.invalid','hash','DEVELOPER',
+                            TIMESTAMP '2026-01-01 00:00:00',TIMESTAMP '2026-01-01 00:00:00')
+                    """);
+                statement.execute("""
+                    INSERT INTO project_repositories (id,owner_id,github_owner,github_name,
+                        canonical_url,default_branch,active,created_at,updated_at)
+                    VALUES (7002,7001,'demo','legacy','https://github.com/demo/legacy','main',TRUE,
+                            TIMESTAMP '2026-01-01 00:00:00',TIMESTAMP '2026-01-01 00:00:00')
+                    """);
+                statement.execute("""
+                    INSERT INTO scans (id,repository_id,commit_sha,branch,trigger,run_id,run_attempt,
+                        scanner_version,status,created_at,updated_at)
+                    VALUES (7003,7002,repeat('0',40),'main','CI_PUSH','legacy-run',1,'8.30.0',
+                            'FINDINGS_DETECTED',TIMESTAMP '2026-01-01 00:00:00',TIMESTAMP '2026-01-01 00:00:00'),
+                           (7004,7002,repeat('0',40),'main','CI_PUSH','legacy-run',2,'8.30.0',
+                            'FINDINGS_DETECTED',TIMESTAMP '2026-01-02 00:00:00',TIMESTAMP '2026-01-02 00:00:00')
+                    """);
+                statement.execute("""
+                    INSERT INTO findings (id,scan_id,fingerprint,rule_id,severity,file_path,line,
+                        commit_sha,sanitized_description,created_at)
+                    VALUES (7005,7003,repeat('a',64),'synthetic-low','LOW','config/demo.txt',2,
+                            repeat('0',40),'Potential secret detected',TIMESTAMP '2026-01-01 00:00:00'),
+                           (7006,7004,repeat('a',64),'synthetic-low','HIGH','config/demo.txt',2,
+                            repeat('0',40),'Potential secret detected',TIMESTAMP '2026-01-02 00:00:00')
+                    """);
+            }
+            DatabaseMigrationConfig.migrate(schema.flyway(), false);
+            try (var statement = schema.connection().createStatement();
+                    var rows = statement.executeQuery("""
+                        SELECT i.repository_id,i.severity,i.status,count(f.id),count(DISTINCT a.id)
+                        FROM incidents i JOIN findings f ON f.incident_id=i.id
+                        JOIN audit_events a ON a.target_type='INCIDENT' AND a.target_id=i.id
+                        GROUP BY i.id
+                        """)) {
+                assertTrue(rows.next());
+                assertEquals(7002, rows.getLong(1));
+                assertEquals("HIGH", rows.getString(2));
+                assertEquals("OPEN", rows.getString(3));
+                assertEquals(2, rows.getInt(4));
+                assertEquals(1, rows.getInt(5));
+                assertFalse(rows.next());
             }
         });
     }
@@ -189,7 +244,7 @@ class DatabaseMigrationIT extends PostgresApiTest {
             try (var statement = schema.connection().createStatement()) {
                 statement.execute("ALTER TABLE users DROP CONSTRAINT users_role_allowed");
                 statement.execute("UPDATE users SET role='SUPERUSER'");
-                statement.execute("DELETE FROM flyway_schema_history WHERE version IN ('4','5','6','7')");
+                statement.execute("DELETE FROM flyway_schema_history WHERE version IN ('4','5','6','7','8')");
             }
             assertThrows(org.flywaydb.core.api.FlywayException.class,
                     () -> DatabaseMigrationConfig.migrate(schema.flyway(), false));

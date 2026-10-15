@@ -2,15 +2,15 @@
 
 Prepared by Member 1 on 11 October 2026 for M01.6.
 
-The implemented model below is checked against the Java entities and V1–V7 migrations,
+The implemented model below is checked against the Java entities and V1–V8 migrations,
 DTOs, configuration, and PostgreSQL integration tests. The future model is the
 finalized M01.1 design in [api-contract.md](api-contract.md), based on the scope in
 [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) and [MODULE_TODO.md](../MODULE_TODO.md).
-Incident, audit, and notification entities remain unimplemented until their named modules.
+Notification delivery remains planned for M10.
 
-## Implemented entities through M07
+## Implemented entities through M08
 
-`User`, `ProjectRepository`, `Scan`, `CiCredential`, and `Finding` are migration-backed.
+`User`, `ProjectRepository`, `Scan`, `CiCredential`, `Finding`, `Incident`, and `AuditEvent` are migration-backed.
 Ownership flows from User to ProjectRepository and all nested scan/finding resources.
 Foreign keys use `ON DELETE RESTRICT` so security evidence is retained.
 
@@ -52,7 +52,10 @@ erDiagram
     }
     PROJECT_REPOSITORY ||--o{ SCAN : has
     PROJECT_REPOSITORY ||--o{ CI_CREDENTIAL : scopes
+    PROJECT_REPOSITORY ||--o{ INCIDENT : tracks
+    PROJECT_REPOSITORY ||--o{ AUDIT_EVENT : records
     SCAN ||--o{ FINDING : contains
+    INCIDENT o|--o{ FINDING : groups_occurrences
     SCAN {
         Long id PK
         Long repositoryId FK
@@ -69,6 +72,7 @@ erDiagram
     FINDING {
         Long id PK
         Long scanId FK
+        Long incidentId FK
         String fingerprint
         String ruleId
         Severity severity
@@ -77,6 +81,21 @@ erDiagram
         String commitSha
         String sanitizedDescription
         LocalDateTime createdAt
+    }
+    INCIDENT {
+        Long id PK
+        Long repositoryId FK
+        String fingerprint UK
+        Severity severity
+        IncidentStatus status
+        long version
+    }
+    AUDIT_EVENT {
+        Long id PK
+        Long repositoryId FK
+        AuditActorType actorType
+        AuditOperation operation
+        LocalDateTime occurredAt
     }
 ```
 
@@ -94,7 +113,7 @@ JPA lifecycle callbacks do not cover direct SQL/bulk JPQL updates.
 
 V1 creates the six original user columns; V2 adds/backfills `updated_at` and makes
 it required. V3 normalizes email, V4 constrains roles, V5 creates repositories,
-V6 creates scans/CI credentials, and V7 creates sanitized findings. All profiles use Hibernate `ddl-auto: validate`; Flyway owns schema
+V6 creates scans/CI credentials, V7 creates sanitized findings, and V8 creates incidents and audit events. All profiles use Hibernate `ddl-auto: validate`; Flyway owns schema
 changes. Existing users require explicit, schema-checked adoption at baseline version
 0. See [database-migrations.md](database-migrations.md) for the fresh/existing paths.
 See [runtime-configuration.md](runtime-configuration.md) and [testing.md](testing.md).
@@ -106,8 +125,7 @@ Historical timezone conversion is intentionally not performed. The runner's
 
 ## Current and future entities and relationships
 
-Entities through Finding and CiCredential exist in the following diagram. Incident,
-audit, and notification entities remain planned. Field names, cardinality, ID types and integrity policies
+Entities through Incident and AuditEvent exist in the following diagram. Notification delivery remains planned. Field names, cardinality, ID types and integrity policies
 match the M01.1 contract. Each later module supplies its own physical DDL/constraint
 names. `long`, `string`, and
 `datetime` are logical types, not SQL syntax. DTO resource IDs are decimal strings.
@@ -118,9 +136,9 @@ names. `long`, `string`, and
 | ProjectRepository | User-owned GitHub identity, canonical URL, default branch, active flag | Implemented M04 |
 | Scan | Repository/commit/run identity, scanner version, outcome, and timing | Implemented M05 |
 | Finding | One scan's sanitized occurrence, stable fingerprint, rule, severity, and safe location | Implemented M07 |
-| Incident | Repository-scoped review record grouping repeated finding occurrences | M08.1 |
+| Incident | Repository-scoped review record grouping repeated finding occurrences | Implemented M08 |
 | CiCredential | Repository-scoped hashed machine credential, expiry and revocation | Implemented M05 |
-| AuditEvent | Append-only repository history with operation, actor, time, and safe change summary | M08.3 |
+| AuditEvent | Append-only repository history with operation, actor, time, and safe change summary | Implemented M08 |
 | NotificationDelivery | Delivery outcome/retry evidence for an incident event and recipient configuration | M10.1 |
 
 ```mermaid
@@ -252,7 +270,7 @@ table is assumed. These checks are implementation requirements for later modules
   and rule-to-severity fallback are specified in the API contract for M07.1.
 - An incident groups one stable finding identity within a repository. Every linked
   occurrence must belong to that same repository through its scan. The eventual
-  schema/service contract must enforce that cross-resource invariant.
+  schema/service contract enforces that cross-resource invariant during ingestion.
 - Proposed scan states are `QUEUED`, `RUNNING`, `CLEAN`, `FINDINGS_DETECTED`, `FAILED`;
   incident review states are `OPEN`, `RESOLVED`, `IGNORED`. Transitions, automatic
   reopening after resolution, reasons, and optimistic `version` are specified in the contract.
@@ -269,8 +287,7 @@ diagram and invariants match the finalized API contract, including the incident
 link, machine credential actor model, notification event reference, and severity policy.
 Fresh/existing migration tests preserve users and backfill timestamps. M02 normalizes
 email; M03 constrains and normalizes roles without silently promoting unknown values.
-DTO exposure omits hashes/secret material. No M08+ resource table or API is claimed
-as implemented by this documentation; their migrations must maintain this contract.
+DTO exposure omits hashes/secret material. Notification delivery remains a future table and API.
 
 M02 adds V3 email normalization and collision refusal while retaining existing
 identities and hashes. M03 adds V4 and maps role to `UserRole`. GET /api/auth/me
