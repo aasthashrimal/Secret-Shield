@@ -209,7 +209,7 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | POST `/api/repositories/{id}/scans` | Owner/admin, active repo | 201, ScanDto; manual QUEUED metadata | Implemented M05 |
 | GET `/api/repositories/{id}/scans` | Owner/admin | 200, Page<ScanDto> | Implemented M05 |
 | GET `/api/repositories/{id}/scans/{scanId}` | Owner/admin | 200, ScanDto | Implemented M05 |
-| POST `/api/repositories/{id}/scans/{scanId}/start` | Owner/admin | 202, ScanDto; controlled local scanner | Planned M06 |
+| POST `/api/repositories/{id}/scans/{scanId}/start` | Owner/admin | 202, terminal ScanDto; controlled synchronous local scanner | Implemented M06 |
 | POST `/api/repositories/{id}/ci-credentials` | Owner/admin | 201, id plus one-time issued credential | Implemented M05 |
 | POST `/api/repositories/{id}/ci-credentials/{credentialId}/revoke` | Owner/admin | 204; idempotent | Implemented M05 |
 | POST `/api/ci/repositories/{id}/scan-results` | Repository machine credential only | 201 first import, 200 identical replay, ScanDto | Implemented M05; findings persist in M07 |

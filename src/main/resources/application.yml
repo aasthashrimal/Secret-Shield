@@ -35,6 +35,14 @@ secretshield:
   admin-bootstrap-enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
   admin-bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}
   admin-bootstrap-exit: ${ADMIN_BOOTSTRAP_EXIT:false}
+  scanner:
+    workspace: ${SCANNER_WORKSPACE:target/scanner-workspace}
+    gitleaks-path: ${GITLEAKS_PATH:gitleaks}
+    config-path: ${GITLEAKS_CONFIG_PATH:config/gitleaks.toml}
+    version: 8.30.0
+    timeout-seconds: ${SCANNER_TIMEOUT_SECONDS:60}
+    max-report-bytes: 5242880
+    max-log-bytes: 65536
 
 jwt:
   secret: ${JWT_SECRET:}
