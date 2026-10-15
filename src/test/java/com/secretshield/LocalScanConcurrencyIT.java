@@ -31,6 +31,7 @@ import com.secretshield.entity.User;
 import com.secretshield.entity.UserRole;
 import com.secretshield.exception.ConflictException;
 import com.secretshield.repository.ProjectRepositoryRepository;
+import com.secretshield.repository.AuditEventRepository;
 import com.secretshield.repository.ScanRepository;
 import com.secretshield.repository.UserRepository;
 import com.secretshield.scanner.LocalScanner;
@@ -42,6 +43,7 @@ class LocalScanConcurrencyIT extends PostgresApiTest {
     @Autowired UserRepository users;
     @Autowired ProjectRepositoryRepository repositories;
     @Autowired ScanRepository scans;
+    @Autowired AuditEventRepository auditEvents;
     @Autowired LocalScanExecutionService execution;
     @Autowired TransactionTemplate transaction;
     @MockitoBean LocalScanner scanner;
@@ -98,6 +100,9 @@ class LocalScanConcurrencyIT extends PostgresApiTest {
             return;
         }
         transaction.executeWithoutResult(status -> {
+            auditEvents.deleteAll(auditEvents.findAll((root, query, cb) ->
+                    cb.equal(root.get("repository").get("id"), createdFixture.repositoryId)));
+            auditEvents.flush();
             scans.deleteById(createdFixture.scanId);
             scans.flush();
             repositories.deleteById(createdFixture.repositoryId);

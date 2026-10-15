@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.secretshield.dto.ScanDto;
 import com.secretshield.entity.Scan;
+import com.secretshield.entity.AuditOperation;
+import com.secretshield.entity.AuditTargetType;
 import com.secretshield.entity.ScanStatus;
 import com.secretshield.entity.ScanTrigger;
 import com.secretshield.entity.User;
@@ -26,6 +28,7 @@ public class LocalScanExecutionService {
     private final LocalScanner scanner;
     private final List<FindingResultSink> sinks;
     private final String scannerVersion;
+    private final AuditService audit;
 
     public LocalScanExecutionService(
             ScanRepository scans,
@@ -33,12 +36,14 @@ public class LocalScanExecutionService {
             ResourceAuthorization authorization,
             LocalScanner scanner,
             List<FindingResultSink> sinks,
+            AuditService audit,
             @Value("${secretshield.scanner.version}") String scannerVersion) {
         this.scans = scans;
         this.repositories = repositories;
         this.authorization = authorization;
         this.scanner = scanner;
         this.sinks = sinks;
+        this.audit = audit;
         this.scannerVersion = scannerVersion;
     }
 
@@ -71,7 +76,10 @@ public class LocalScanExecutionService {
             throw new ConflictException("Scan cannot be started");
         }
         ScanService.transition(scan, ScanStatus.RUNNING, null, null);
-        return scans.saveAndFlush(scan);
+        scans.saveAndFlush(scan);
+        audit.user(repository, actor, AuditOperation.SCAN_STARTED, AuditTargetType.SCAN,
+                scan.getId(), "Manual scan started");
+        return scan;
     }
 
     private ScanDto finish(long scanId, LocalScanner.Result result) {
@@ -83,6 +91,8 @@ public class LocalScanExecutionService {
                 ? ScanStatus.CLEAN : ScanStatus.FINDINGS_DETECTED;
         ScanService.transition(scan, status, result.version(), null);
         scans.saveAndFlush(scan);
+        audit.system(scan.getRepository(), AuditOperation.SCAN_COMPLETED, AuditTargetType.SCAN,
+                scan.getId(), "Scan completed with status " + status.name());
         for (var sink : sinks) {
             sink.persist(scan, result.findings());
         }
@@ -94,6 +104,8 @@ public class LocalScanExecutionService {
         if (scan.getStatus() == ScanStatus.RUNNING) {
             ScanService.transition(scan, ScanStatus.FAILED, scannerVersion, ScanService.failure(code));
             scans.saveAndFlush(scan);
+            audit.system(scan.getRepository(), AuditOperation.SCAN_FAILED, AuditTargetType.SCAN,
+                    scan.getId(), "Scan failed");
         }
         return ScanDto.from(scan);
     }
