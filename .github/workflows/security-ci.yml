@@ -101,7 +101,7 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Backend tests and package
-        run: ./mvnw -B verify
+        run: sh ./mvnw -B verify
       - name: Workflow normalization and retry tests
         run: node --test scripts/ci-workflow.test.mjs
       - name: Frontend tests and production build
