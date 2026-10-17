@@ -4,7 +4,7 @@ Based on both project PDFs and the repository review dated 11 October 2026. Read
 
 **Member 1:** you. **Member 2:** your teammate.
 
-**Current scope override:** Member 1 alone implements all Module 0/1/2/3 setup, documentation and backend tasks. M00.2/M00.3 GitHub collaboration is explicitly deferred. Second-machine reproduction is outside this solo scope and remains unverified. Later-module assignments stay as planned.
+**Current scope override:** Member 1 alone implemented Modules 0–11, including the assigned presentation and documentation tasks. M00.2/M00.3 GitHub collaboration is explicitly deferred. Second-machine reproduction remains unverified. Later-module assignments stay as planned.
 
 ## How to use this checklist
 
@@ -158,16 +158,16 @@ Depends on M08. Implement locally with a fake provider first; live Azure validat
 
 Member 1 owns shared setup, contracts, API integration, session handling, and mutations. Member 2 owns the listed presentation files. M11.1 can begin after M01.1; fixture-driven pages can proceed alongside backend work. Live integration waits for the relevant APIs.
 
-- [ ] **M11.1 — Member 1:** Create `frontend/`, choose/pin its tooling, add shared layout/router/theme, and publish stable typed props/DTOs and synthetic fixtures in agreed files. Establish filenames for Member 2's pages and components. **Done when:** development/build commands work and fixtures cover loading, empty, success, and error states.
-- [ ] **M11.2 — Member 1:** Implement authorized dashboard summary APIs: scan counts/outcomes, finding severities, incident counts, recent activity, and repository security summaries. **Done when:** aggregation tests verify counts, filters, owner isolation, and no misleading clean status without a valid scan.
-- [ ] **M11.3 — Member 1:** Implement API client, session handling, login/register functional forms, protected routes, expiration handling, and shared request/error behavior according to M02.4. **Done when:** browser registration/login/logout and unauthorized redirects work against the backend.
-- [ ] **M11.4 — Member 2:** Build the overview page and reusable summary cards/severity/status badges using supplied props and fixtures. **Done when:** all states render, responsive layout works, and labels match backend terminology.
-- [ ] **M11.5 — Member 2:** Build repository and scan list/detail presentation with supplied filter/page callbacks. **Done when:** branch/commit/time/outcome are clear, tables have empty/loading/error views, and no backend mutation logic is embedded in page components.
-- [ ] **M11.6 — Member 2:** Build findings and incident list/detail presentation plus a history timeline. Render supplied transition controls/callbacks and permission flags. **Done when:** severity, safe location, reason, and actor/time are readable and inaccessible actions are not offered.
-- [ ] **M11.7 — Member 2:** Add keyboard-accessible controls, field labels, readable contrast, consistent date formatting, help text, and mobile/table overflow behavior across assigned pages. **Done when:** the page review checklist passes with synthetic fixtures.
-- [ ] **M11.8 — Member 1:** Connect presentation components to live APIs, pagination/filters, repository actions, and incident mutations; handle conflicts, forbidden responses, and notification status. **Done when:** a full local scan-to-incident-review flow works in the browser without secrets in browser logs.
-- [ ] **M11.9 — Member 1:** Add focused frontend integration checks for session expiry, ownership/error handling, and incident state updates. Run production build. **Done when:** critical user flows pass with finalized API contracts.
-- [ ] **M11.10 — Member 2:** Run the manual UI checklist and capture sanitized screenshots; report bugs with steps, expected behavior, and actual behavior. **Done when:** Member 1 resolves functional defects and the verified UI evidence is ready for the report.
+- [x] **M11.1 — Member 1:** Create `frontend/`, choose/pin its tooling, add shared layout/router/theme, and publish stable typed props/DTOs and synthetic fixtures in agreed files. Establish filenames for Member 2's pages and components. **Done when:** development/build commands work and fixtures cover loading, empty, success, and error states.
+- [x] **M11.2 — Member 1:** Implement authorized dashboard summary APIs: scan counts/outcomes, finding severities, incident counts, recent activity, and repository security summaries. **Done when:** aggregation tests verify counts, filters, owner isolation, and no misleading clean status without a valid scan.
+- [x] **M11.3 — Member 1:** Implement API client, session handling, login/register functional forms, protected routes, expiration handling, and shared request/error behavior according to M02.4. **Done when:** browser registration/login/logout and unauthorized redirects work against the backend.
+- [x] **M11.4 — Member 2 (completed by Member 1 under solo scope):** Build the overview page and reusable summary cards/severity/status badges using supplied props and fixtures. **Done when:** all states render, responsive layout works, and labels match backend terminology.
+- [x] **M11.5 — Member 2 (completed by Member 1 under solo scope):** Build repository and scan list/detail presentation with supplied filter/page callbacks. **Done when:** branch/commit/time/outcome are clear, tables have empty/loading/error views, and no backend mutation logic is embedded in page components.
+- [x] **M11.6 — Member 2 (completed by Member 1 under solo scope):** Build findings and incident list/detail presentation plus a history timeline. Render supplied transition controls/callbacks and permission flags. **Done when:** severity, safe location, reason, and actor/time are readable and inaccessible actions are not offered.
+- [x] **M11.7 — Member 2 (completed by Member 1 under solo scope):** Add keyboard-accessible controls, field labels, readable contrast, consistent date formatting, help text, and mobile/table overflow behavior across assigned pages. **Done when:** the page review checklist passes with synthetic fixtures.
+- [x] **M11.8 — Member 1:** Connect presentation components to live APIs, pagination/filters, repository actions, and incident mutations; handle conflicts, forbidden responses, and notification status. **Done when:** a full local scan-to-incident-review flow works in the browser without secrets in browser logs.
+- [x] **M11.9 — Member 1:** Add focused frontend integration checks for session expiry, ownership/error handling, and incident state updates. Run production build. **Done when:** critical user flows pass with finalized API contracts.
+- [x] **M11.10 — Member 2 (completed by Member 1 under solo scope):** Run the manual UI checklist and capture sanitized screenshots; report bugs with steps, expected behavior, and actual behavior. **Done when:** Member 1 resolves functional defects and the verified UI evidence is ready for the report.
 
 ## M12 — GitHub Actions and automated scanning
 
@@ -240,9 +240,9 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration) through M09 are complete under
-the solo workflow. M10 local implementation is complete; M10.4 awaits live Azure
-validation after M14. The next implementation module is M11.
+Modules M00 (except deferred GitHub collaboration) through M09 and M11 are complete
+under the solo workflow. M10 local implementation is complete; M10.4 awaits live
+Azure validation after M14. The next implementation module is M12.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
@@ -259,3 +259,5 @@ Module 06 completion record (15 October 2026): M06.1-M06.6 implemented and verif
 Module 07 completion record (15 October 2026): M07.1-M07.5 implemented and verified by Member 1 for this complete-module request. V7 finding persistence, severity/fingerprint policy, safe APIs, retry/later-occurrence behavior, and owner/admin isolation passed 68 executed default tests and 123 executed disposable PostgreSQL tests; four opt-in real-scanner tests remain separately gated. M08 is next.
 
 Module 10 local completion record (15 October 2026): M10.1-M10.3 and M10.5 implemented by Member 1 under the solo workflow. V9 notification outbox, fake and ACS providers, safe history API, retry/deduplication, and ownership checks passed the disposable PostgreSQL suite (144 tests, 0 failures/errors, 4 opt-in scanner tests skipped) and the default suite. A UTC timestamp offset exposed by retry timing tests was corrected for new writes. M10.4 remains open until M14 supplies a verified ACS sender/domain and approved test recipient; fake-provider `SENT` is not live delivery evidence.
+
+Module 11 completion record (17 October 2026): M11.1-M11.10 implemented by Member 1 under the solo workflow. The React/TypeScript dashboard includes session handling, owner-scoped overview, repository/scan/finding/incident/history/notification views, filters, mutations, responsive states, and synthetic fixtures. The disposable PostgreSQL suite passed 146 tests with 4 opt-in scanner tests skipped; 5 frontend tests and the production build passed. Edge synthetic desktop/mobile capture and the disposable live backend/browser scan-to-incident walkthrough passed, with sanitized screenshots in `docs/evidence/`. The live walkthrough uses machine-ingested synthetic findings, not a real Gitleaks invocation or Azure delivery; those have separate module evidence. See `docs/dashboard-guide.md`.

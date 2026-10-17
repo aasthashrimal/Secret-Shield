@@ -2,6 +2,7 @@
 param(
     [string]$PostgresBin = $env:PG_BIN,
     [switch]$Offline,
+    [switch]$DashboardSmoke,
     [string]$CleanupRunId
 )
 
@@ -110,7 +111,8 @@ $savedEnvironment = @{}
 $environmentNames = @('TEST_DB_URL', 'TEST_DB_USERNAME', 'TEST_DB_PASSWORD', 'TEST_DB_RUN_ID',
     'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'SPRING_DATASOURCE_URL',
     'SPRING_DATASOURCE_USERNAME', 'SPRING_DATASOURCE_PASSWORD', 'SPRING_PROFILES_ACTIVE',
-    'SPRING_PROFILES_DEFAULT', 'SPRING_JPA_HIBERNATE_DDL_AUTO', 'PGPASSWORD', 'PGSERVICE', 'PGSERVICEFILE')
+    'SPRING_PROFILES_DEFAULT', 'SPRING_JPA_HIBERNATE_DDL_AUTO', 'PGPASSWORD', 'PGSERVICE', 'PGSERVICEFILE',
+    'VITE_PROXY_TARGET', 'M11_API_BASE', 'NOTIFICATION_PROVIDER', 'NOTIFICATION_RECIPIENTS')
 foreach ($name in $environmentNames) {
     $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
     [Environment]::SetEnvironmentVariable($name, $null, 'Process')
@@ -118,6 +120,7 @@ foreach ($name in $environmentNames) {
 $started = $false
 $exitCode = 1
 $canRemove = $true
+$appProcess = $null
 function Invoke-PostgresTool([string]$Name, [string[]]$Arguments) {
     $code = Invoke-LoggedTool $Name $Arguments $bootstrapLog
     if ($code -ne 0) { throw "PostgreSQL $Name failed. Inspect the disposable bootstrap log locally." }
@@ -153,8 +156,49 @@ try {
         } finally {
             $ErrorActionPreference = $previousErrorAction
         }
+        if ($DashboardSmoke -and $exitCode -eq 0) {
+            & (Join-Path $workspace 'mvnw.cmd') -o -DskipTests package
+            if ($LASTEXITCODE -ne 0) { throw 'Dashboard smoke package build failed.' }
+            $jar = Join-Path $workspace 'target/secret-shield-0.0.1-SNAPSHOT.jar'
+            if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw 'Packaged backend JAR missing.' }
+            $appListener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
+            $appListener.Start()
+            $appPort = $appListener.LocalEndpoint.Port
+            $appListener.Stop()
+            if ($appPort -eq $port -or $appPort -eq 8080) { throw 'Unsafe dashboard smoke port; rerun.' }
+            $env:DB_URL = $env:TEST_DB_URL
+            $env:DB_USERNAME = $env:TEST_DB_USERNAME
+            $env:DB_PASSWORD = $env:TEST_DB_PASSWORD
+            $env:JWT_SECRET = 'synthetic-dashboard-smoke-jwt-key-2026-10-17'
+            $env:NOTIFICATION_PROVIDER = 'fake'
+            $env:NOTIFICATION_RECIPIENTS = 'security=alerts@example.invalid'
+            $env:VITE_PROXY_TARGET = "http://127.0.0.1:$appPort"
+            $env:M11_API_BASE = $env:VITE_PROXY_TARGET
+            $appStdout = Join-Path $runRoot 'dashboard-app.stdout.log'
+            $appStderr = Join-Path $runRoot 'dashboard-app.stderr.log'
+            $appProcess = Start-Process -FilePath (Get-Command java).Source `
+                -ArgumentList @('-jar', ('"' + $jar + '"'), '--spring.profiles.active=local', "--server.port=$appPort") `
+                -WindowStyle Hidden -PassThru -RedirectStandardOutput $appStdout -RedirectStandardError $appStderr
+            $appProcess.Handle | Out-Null
+            $ready = $false
+            foreach ($attempt in 1..60) {
+                if ($appProcess.HasExited) { break }
+                try {
+                    $health = Invoke-RestMethod -Uri "http://127.0.0.1:$appPort/api/health/live" -TimeoutSec 2
+                    if ($health.status -eq 'UP') { $ready = $true; break }
+                } catch { Start-Sleep -Milliseconds 500 }
+            }
+            if (-not $ready) { throw 'Disposable dashboard backend did not become ready; see private app log.' }
+            & node (Join-Path $workspace 'frontend/scripts/live-smoke.mjs')
+            if ($LASTEXITCODE -ne 0) { throw 'Dashboard browser smoke failed.' }
+            Write-Host 'Disposable backend and browser dashboard smoke passed.'
+        }
     } finally { Pop-Location }
 } finally {
+    if ($appProcess -and -not $appProcess.HasExited) {
+        Stop-Process -Id $appProcess.Id -Force
+        $appProcess.WaitForExit()
+    }
     # Even a failed startup may leave a server running; stop only this new cluster.
     if ($started -or (Test-Path -LiteralPath (Join-Path $dataPath 'postmaster.pid'))) {
         $code = Invoke-LoggedTool 'pg_ctl' @('-D', $dataPath, '-m', 'fast', '-w', '-t', '30', 'stop') $bootstrapLog

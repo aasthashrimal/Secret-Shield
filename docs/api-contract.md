@@ -222,7 +222,7 @@ Current authentication request/response DTOs remain unchanged. All entries marke
 | GET `/api/repositories/{id}/audit-events` | Owner/admin | 200, Page<AuditEventDto> | Implemented M08 |
 | GET `/api/repositories/{id}/gate?commitSha=...` | Owner/admin | 200, GateDto (ALLOW/BLOCK, not an HTTP failure) | Implemented M09 |
 | GET `/api/repositories/{id}/incidents/{incidentId}/notifications` | Owner/admin | 200, Page<NotificationDto> | Implemented M10 |
-| GET `/api/dashboard/overview` | User, ownership-filtered/admin | 200, DashboardOverviewDto | Planned M11 |
+| GET `/api/dashboard/overview` | User, ownership-filtered/admin | 200, DashboardOverviewDto | Implemented M11 |
 
 Repository creation body: `githubOwner`, `githubName`, `defaultBranch` (default
 `main`); the server derives canonical URL/ownerId/active. Manual scan body: `branch`
@@ -274,7 +274,9 @@ interface IncidentDto { id: Id; repositoryId: Id; fingerprint: string; severity:
 interface AuditEventDto { id: Id; repositoryId: Id; actorType: ActorType; actorUserId: Id | null; actorCredentialId: Id | null; operation: string; targetType: "REPOSITORY" | "SCAN" | "FINDING" | "INCIDENT" | "CI_CREDENTIAL"; targetId: Id; safeChangeSummary: string; occurredAt: Instant }
 interface NotificationDto { id: Id; incidentId: Id; auditEventId: Id; recipientConfigReference: string; status: "QUEUED" | "SENDING" | "SENT" | "FAILED"; attemptCount: number; safeErrorCode: string | null; createdAt: Instant; updatedAt: Instant }
 interface GateDto { repositoryId: Id; commitSha: string; scanId: Id | null; outcome: "ALLOW" | "BLOCK"; reason: "CLEAN" | "FINDINGS_DETECTED" | "SCAN_FAILED" | "SCAN_PENDING" | "NO_SCAN" }
-interface DashboardOverviewDto { repositories: number; activeRepositories: number; scans: number; findings: number; incidents: number; findingsBySeverity: Record<Severity, number>; incidentsByStatus: Record<IncidentStatus, number>; failedNotifications: number }
+interface DashboardRecentActivity { id: Id; repositoryId: Id; operation: string; actorType: ActorType; safeChangeSummary: string; occurredAt: Instant }
+interface RepositorySecuritySummary { repositoryId: Id; githubOwner: string; githubName: string; active: boolean; latestScanId: Id | null; latestCommitSha: string | null; latestScanStatus: ScanStatus | null; gateOutcome: "ALLOW" | "BLOCK"; gateReason: GateDto["reason"] }
+interface DashboardOverviewDto { repositories: number; activeRepositories: number; scans: number; findings: number; incidents: number; scanOutcomes: Record<ScanStatus, number>; findingsBySeverity: Record<Severity, number>; incidentsByStatus: Record<IncidentStatus, number>; failedNotifications: number; recentActivity: DashboardRecentActivity[]; repositorySecurity: RepositorySecuritySummary[] }
 ```
 
 Synthetic incident transition example (optimistic version checked server-side):
@@ -285,7 +287,14 @@ Synthetic incident transition example (optimistic version checked server-side):
 
 Dashboard counts use the same authorized repositories and date window; findings
 count occurrences, incidents count deduplicated records. Severity/status maps always
-contain every enum key with zero when empty. Audit `operation` is one of
+contain every enum key with zero when empty.
+`GET /api/dashboard/overview` accepts optional `from` (inclusive) and `to`
+(exclusive) UTC instants. The time window filters scans, finding occurrences,
+incident creation, failed delivery creation, and recent audit activity. Repository
+and active-repository counts are current inventory. Recent activity and repository
+security summaries return at most 10 rows each; repository gate status uses the
+same validated gate decision as `/gate`, so a malformed CLEAN record is blocked.
+Audit `operation` is one of
 `REPOSITORY_CREATED`, `REPOSITORY_UPDATED`, `REPOSITORY_DEACTIVATED`, `SCAN_CREATED`,
 `SCAN_STARTED`, `SCAN_COMPLETED`, `SCAN_FAILED`, `INCIDENT_CREATED`, `INCIDENT_RESOLVED`,
 `INCIDENT_IGNORED`, `INCIDENT_REOPENED`, `INCIDENT_OCCURRENCE`,

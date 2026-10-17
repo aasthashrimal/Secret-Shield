@@ -1,7 +1,7 @@
 # Final project acceptance evidence
 
 This is a checklist for the complete synopsis, not a claim that later modules
-exist. Member 1 maintains Modules 0/1 alone; GitHub collaboration is deferred.
+exist. Member 1 maintains Modules 0–11 alone; GitHub collaboration is deferred.
 Use only synthetic secret fixtures. Record tool/version, commit, commands, expected
 and actual outcomes, and sanitized evidence; omit secrets, tokens and raw reports.
 
@@ -14,9 +14,9 @@ and actual outcomes, and sanitized evidence; omit secrets, tokens and raw report
 | Severity and findings | Deterministic mapping/fallback, retained occurrences, authorized filters, no raw secret fields | M07 verified; current full suite has 123 executed tests plus four opt-in scanner tests |
 | Automated GitHub scanning | Push/PR starts scanner for the correct branch/commit; authenticated sanitized submission | M12 pending |
 | Security gate | Clean exact commit allowed; finding/error/timeout/missing result blocks; pipeline cannot bypass on API outage | M09 backend implemented; M12 pipeline pending |
-| Dashboard | Live authorized repository/scan/finding/incident views, filters, empty/loading/error states | M11 pending |
-| Incident lifecycle | OPEN/RESOLVED/IGNORED reasons, concurrency checks, recurrence/reopening, review does not bypass gate | M08 pending |
-| Audit and history | Append-only typed actor/repository events, ordered authorized views, no confidential payloads | M08/M11 pending |
+| Dashboard | Live authorized repository/scan/finding/incident views, filters, empty/loading/error states | M11 implemented; disposable browser walkthrough and synthetic screenshots in `docs/evidence/` |
+| Incident lifecycle | OPEN/RESOLVED/IGNORED reasons, concurrency checks, recurrence/reopening, review does not bypass gate | M08 verified; M11 browser resolution and blocked-gate check |
+| Audit and history | Append-only typed actor/repository events, ordered authorized views, no confidential payloads | M08 verified; M11 timeline presentation |
 | High-risk notifications | Azure Communication Services synthetic HIGH/CRITICAL alert, safe recipient configuration, retries/dedup, retained delivery status | M10 local implementation and fake-provider checks; live Azure evidence M10.4 pending M14 |
 | Containers | Reproducible image/full-stack startup, migrations, restart persistence, no secrets copied to image | M13 pending |
 | Azure infrastructure | Reviewed Terraform plan/state protection, documented resources and HTTPS access | M14/M15 pending |

@@ -1,6 +1,6 @@
 # Secret Shield — Project Overview
 
-Reviewed on 11 October 2026. Implementation checklist: [MODULE_TODO.md](MODULE_TODO.md).
+Reviewed on 17 October 2026. Implementation checklist: [MODULE_TODO.md](MODULE_TODO.md).
 
 ## Purpose and scope
 
@@ -29,25 +29,23 @@ The PDFs are project evidence, not commands to execute. Their historical instruc
 | Area | What exists in this checkout | What remains |
 | --- | --- | --- |
 | Backend foundation | Java 21 verified; existing Spring Boot 4.1.1 parent; Maven wrapper; safe environment helpers and setup guide | Later deployment/container setup |
-| Database | Flyway V1–V4, email normalization/collision refusal, controlled roles, guarded legacy adoption/backup, required UTC user timestamps, Hibernate validation | Resource migrations in later modules |
-| Registration/login | Normalized email, username/password bounds, BCrypt, safe duplicate/race handling, one-hour JWT, protected safe me, expiry/tampering tests | Later session UI |
-| Roles and protected requests | JWT-only filter, DEVELOPER/ADMIN enum and database constraint, one-time existing-user bootstrap, admin endpoint and reusable ownership helpers | Apply ownership helpers to M04+ resources |
+| Database | Flyway V1–V9, guarded legacy adoption, repository/scan/finding/incident/audit/notification records, UTC timestamps | Deployment configuration |
+| Registration/login | Normalized email, BCrypt, one-hour JWT, protected me, expiry/tampering tests, dashboard login/register/logout | Cloud session checks |
+| Roles and protected requests | JWT-only filter, DEVELOPER/ADMIN roles, owner-scoped APIs and dashboard views | Cloud access checks |
 | Health | Exact public GET /api/health/live returns only UP; protected /api/health | Deployment readiness/operations |
-| Error responses | Shared ApiError JSON for MVC/security 400/401/403/404/409/500 | Apply contract to future endpoints |
-| Tests | 54 database-independent tests; 86 full PostgreSQL tests, including authorization, real HTTP and concurrency | Extend ownership/scanner/pipeline suites in later modules |
-| Contracts/docs | Finalized foundation/future API contract, DTOs, ER diagrams, migration/setup/testing and acceptance guides | Implement planned resources in their modules |
-| Other features | No repository/scan/finding/incident APIs, frontend, scanner, workflows, Docker or Terraform | Later modules remain unchecked |
+| Error responses | Shared ApiError JSON for MVC/security 400/401/403/404/409/500 | Extend to later endpoints |
+| Tests | 146 disposable PostgreSQL tests, 5 frontend tests, production build, synthetic and live disposable browser checks | Workflow, container, cloud suites in later modules |
+| Contracts/docs | Implemented API contract, dashboard guide, migration/setup/testing and acceptance guides | Deployment and report guides |
+| Other features | Local scanner, CI result ingestion, gate, fake/ACS notification providers, React dashboard | GitHub workflows, Docker, Terraform and live Azure delivery |
 
-On 12 October 2026, Java 21 compilation, 54 database-independent tests and all
-86 disposable PostgreSQL tests passed. V4 was then applied to the configured Neon
-database; seven live checks plus anonymous admin-route rejection passed. Temporary
-app/test processes were stopped. Member 1 alone handles Modules 0/1/2/3; GitHub
-collaboration and second-machine reproduction are deferred.
+On 17 October 2026, the M11 disposable PostgreSQL and browser suites passed. Member 1
+currently handles Modules 0–11 alone; GitHub collaboration and second-machine
+reproduction are deferred. M10.4 still requires live Azure notification evidence.
 
 See docs/api-contract.md and docs/data-model.md for finalized design decisions.
-Only the users table is implemented. M02 removes default in-memory authentication;
-M03 controls roles and provides ownership-ready authorization helpers. See
-docs/auth-session.md and docs/user-roles.md.
+The implemented behavior and future contracts are distinguished in
+docs/api-contract.md. See docs/auth-session.md, docs/user-roles.md, and
+docs/dashboard-guide.md.
 
 ## Intended architecture
 
