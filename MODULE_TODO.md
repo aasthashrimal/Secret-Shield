@@ -180,6 +180,8 @@ Depends on M09 and the M05/M07 authenticated ingestion contract. Image-build ste
 - [ ] **M12.5 — Member 1:** Add backend tests, frontend checks, and image build on the allowed path; reserve Azure deployment for the agreed trusted branch/environment and deployment identity. **Done when:** the required PR checks cover both members' contributions and PRs cannot deploy with production credentials.
 - [ ] **M12.6 — Member 2:** Document workflow stages and capture sanitized GitHub evidence for clean, blocked, and scanner-failure runs. **Done when:** screenshots include commit/run identity and match stored scan records.
 
+**Local implementation (17 October 2026, Member 1 solo):** The pinned read-only scanner workflow, safe normalizer, bounded/idempotent reporter, PR/push trust split, clean-gated build, optional M13 image build, and trusted release-candidate gate are in place. Local Gitleaks 8.30.0 clean/finding fixtures and Node normalizer/retry tests passed. `docs/github-workflow.md` records configuration and the GitHub evidence matrix. These steps remain unchecked until actual GitHub clean/finding/error/fork runs, protected-branch settings, backend record comparison, and sanitized screenshots are verified. M13/M15 still supply the image and deployment jobs.
+
 ## M13 — Docker and local full-stack execution
 
 Depends on runnable backend and frontend from M11; can proceed before final cloud integration.
@@ -242,7 +244,8 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 Modules M00 (except deferred GitHub collaboration) through M09 and M11 are complete
 under the solo workflow. M10 local implementation is complete; M10.4 awaits live
-Azure validation after M14. The next implementation module is M12.
+Azure validation after M14. M12 local workflow code exists; live GitHub acceptance
+and M13/M15-dependent build/deploy work remain.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 
