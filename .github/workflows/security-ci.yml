@@ -33,7 +33,7 @@ jobs:
           SCAN_SHA: ${{ github.sha }}
           SCAN_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
           SCAN_TRIGGER: ${{ github.event_name == 'pull_request' && 'CI_PR' || 'CI_PUSH' }}
-          POLICY_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          POLICY_REF: '0000000000000000000000000000000000000000'
           RANGE_START: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
