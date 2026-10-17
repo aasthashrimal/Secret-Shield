@@ -1,0 +1,127 @@
+name: Security CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Secret scan and gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      status: ${{ steps.scanner.outputs.status }}
+      reported: ${{ steps.report.outputs.reported }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Scan checked-out commit with pinned Gitleaks
+        id: scanner
+        shell: bash
+        env:
+          SCAN_SHA: ${{ github.sha }}
+          SCAN_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          SCAN_TRIGGER: ${{ github.event_name == 'pull_request' && 'CI_PR' || 'CI_PUSH' }}
+          POLICY_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          RANGE_START: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SCAN_SHA"
+          trap 'rm -f "$RUNNER_TEMP/gitleaks-raw.json" "$RUNNER_TEMP/gitleaks.toml"' EXIT
+          code=2
+          if git show "$POLICY_REF:config/gitleaks.toml" > "$RUNNER_TEMP/gitleaks.toml"; then
+            range="$SCAN_SHA"
+            if [[ "$RANGE_START" =~ ^[0-9a-f]{40}$ ]] && git merge-base --is-ancestor "$RANGE_START" "$SCAN_SHA" && [[ "$RANGE_START" != "$SCAN_SHA" ]]; then
+              range="$RANGE_START..$SCAN_SHA"
+            fi
+            set +e
+            docker run --rm --network none --read-only --tmpfs /tmp \
+              -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/repo \
+              --mount "type=bind,src=$PWD,dst=/repo,readonly" \
+              --mount "type=bind,src=$RUNNER_TEMP,dst=/out" -w /repo \
+              ghcr.io/gitleaks/gitleaks@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9 \
+              git /repo --config=/out/gitleaks.toml "--log-opts=$range" \
+              --report-format=json --report-path=/out/gitleaks-raw.json --redact=100 \
+              --no-banner --no-color --log-level=error --exit-code=1 --timeout=60
+            code=$?
+            set -e
+          fi
+          status=$(node scripts/ci-normalize-report.mjs "$code" "$RUNNER_TEMP/gitleaks-raw.json" "$RUNNER_TEMP/scan-result.json")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "Scan outcome: $status for $SCAN_SHA"
+      - name: Report sanitized result from trusted main push
+        id: report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.scanner.outputs.status != ''
+        continue-on-error: true
+        env:
+          SECRET_SHIELD_API_BASE: ${{ vars.SECRET_SHIELD_API_BASE }}
+          SECRET_SHIELD_REPOSITORY_ID: ${{ vars.SECRET_SHIELD_REPOSITORY_ID }}
+          SECRET_SHIELD_CI_CREDENTIAL: ${{ secrets.SECRET_SHIELD_CI_CREDENTIAL }}
+        run: |
+          node scripts/ci-report.mjs "$RUNNER_TEMP/scan-result.json"
+          echo 'reported=true' >> "$GITHUB_OUTPUT"
+      - name: Enforce clean exact-commit gate
+        if: always()
+        env:
+          SCAN_STATUS: ${{ steps.scanner.outputs.status }}
+        run: |
+          if [ "$SCAN_STATUS" != CLEAN ]; then
+            echo "Build blocked: scan outcome is ${SCAN_STATUS:-missing}."
+            exit 1
+          fi
+          echo "Clean scan of $GITHUB_SHA confirmed."
+
+  build:
+    name: Backend and frontend checks
+    needs: scan
+    if: needs.scan.result == 'success' && needs.scan.outputs.status == 'CLEAN'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Backend tests and package
+        run: ./mvnw -B verify
+      - name: Workflow normalization and retry tests
+        run: node --test scripts/ci-workflow.test.mjs
+      - name: Frontend tests and production build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Build container when M13 Dockerfile is present
+        if: hashFiles('Dockerfile') != ''
+        run: docker build --pull -t secret-shield:ci .
+
+  release_candidate:
+    name: Trusted release candidate
+    needs: [scan, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.scan.result == 'success' && needs.scan.outputs.status == 'CLEAN' && needs.scan.outputs.reported == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Record eligible commit
+        env:
+          ELIGIBLE_SHA: ${{ github.sha }}
+        run: echo "Verified release candidate $ELIGIBLE_SHA; Azure deployment is added in M15."

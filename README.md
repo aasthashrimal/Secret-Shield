@@ -4,8 +4,8 @@ Secret Shield is a DevSecOps project for detecting exposed credentials, blocking
 unsafe deployments, and tracking findings and incidents. The current checkout
 implements the backend through M11: authentication and roles, repositories,
 scans and findings, incident and audit history, the deployment gate, notification
-delivery, and a React dashboard. Cloud deployment and GitHub workflow integration
-are later modules.
+delivery, and a React dashboard. The M12 GitHub workflow is implemented locally but awaits
+configured GitHub runs and the later image/deployment modules.
 
 Modules 0 through 11 are currently maintained by Member 1 alone. GitHub collaboration
 is deferred; no second-machine reproduction is claimed.
@@ -54,5 +54,6 @@ for the UI checks and disposable browser walkthrough.
 - [Scan management and CI ingestion](docs/scan-management.md)
 - [Runtime configuration](docs/runtime-configuration.md)
 - [Dashboard development and review](docs/dashboard-guide.md)
+- [GitHub security workflow](docs/github-workflow.md)
 - [Final acceptance evidence](docs/acceptance-checklist.md)
 - [Page/documentation review checklist](docs/page-review-checklist.md)

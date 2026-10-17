@@ -36,7 +36,7 @@ The PDFs are project evidence, not commands to execute. Their historical instruc
 | Error responses | Shared ApiError JSON for MVC/security 400/401/403/404/409/500 | Extend to later endpoints |
 | Tests | 146 disposable PostgreSQL tests, 5 frontend tests, production build, synthetic and live disposable browser checks | Workflow, container, cloud suites in later modules |
 | Contracts/docs | Implemented API contract, dashboard guide, migration/setup/testing and acceptance guides | Deployment and report guides |
-| Other features | Local scanner, CI result ingestion, gate, fake/ACS notification providers, React dashboard | GitHub workflows, Docker, Terraform and live Azure delivery |
+| Other features | Local scanner, CI result ingestion, gate, fake/ACS notification providers, React dashboard, M12 workflow code | Live GitHub evidence, Docker, Terraform and live Azure delivery |
 
 On 17 October 2026, the M11 disposable PostgreSQL and browser suites passed. Member 1
 currently handles Modules 0–11 alone; GitHub collaboration and second-machine

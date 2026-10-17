@@ -1,0 +1,32 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { normalize } from './ci-normalize-report.mjs';
+import { submit } from './ci-report.mjs';
+
+const meta = { sha: 'a'.repeat(40), branch: 'main', runId: '1234', attempt: 1, trigger: 'CI_PUSH' };
+const leak = { RuleID: 'generic-api-key', File: 'config/demo.txt', StartLine: 4, Secret: 'never-include-this', Match: 'never-include-this' };
+
+test('clean, finding and process failure remain distinct and omit raw values', () => {
+  assert.equal(normalize(0, '[]', meta).status, 'CLEAN');
+  const finding = normalize(1, JSON.stringify([leak]), meta);
+  assert.equal(finding.status, 'FINDINGS_DETECTED');
+  assert.equal(finding.findings[0].filePath, 'config/demo.txt');
+  assert.equal(normalize(1, JSON.stringify([{ ...leak, File: '/repo/config/demo.txt' }]), meta).findings[0].filePath, 'config/demo.txt');
+  assert.ok(!JSON.stringify(finding).includes('never-include-this'));
+  assert.deepEqual(normalize(2, '', meta).findings, []);
+  assert.equal(normalize(2, '', meta).failureCode, 'SCANNER_PROCESS_ERROR');
+  assert.equal(normalize(0, JSON.stringify([leak]), meta).status, 'FAILED');
+  assert.equal(normalize(1, 'invalid', meta).failureCode, 'SCANNER_REPORT_INVALID');
+  assert.equal(normalize(1, JSON.stringify([{ ...leak, File: '../escape' }]), meta).status, 'FAILED');
+});
+
+test('reporting retries transient errors with one identical payload and accepts replay', async () => {
+  const payload = JSON.stringify(normalize(1, JSON.stringify([leak]), meta));
+  const bodies = [];
+  const response = await submit(payload, { base: 'https://example.invalid', repositoryId: '7', credential: 'fixture', sleep: async () => {},
+    fetcher: async (_url, options) => { bodies.push(options.body); return bodies.length === 1 ? { status: 503 } :
+      { status: 200, json: async () => ({ commitSha: meta.sha, status: 'FINDINGS_DETECTED', repositoryId: '7' }) }; } });
+  assert.equal(response.status, 'FINDINGS_DETECTED');
+  assert.deepEqual(bodies, [payload, payload]);
+  await assert.rejects(submit(payload, { base: '', repositoryId: '7', credential: '' }), /configuration/);
+});

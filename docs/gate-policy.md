@@ -37,5 +37,7 @@ return 400. Owners can inspect their repositories, and admins can inspect all.
 The deployment workflow must pass the commit SHA it is about to deploy and proceed
 only on HTTP 200 with a well-formed `ALLOW` response for that same repository and
 commit. A timeout, unavailable API, authentication error, malformed response, or
-other reporting outage blocks deployment. GitHub workflow enforcement is scheduled
-for M12; this endpoint alone cannot stop a deployment outside that workflow.
+other reporting outage blocks deployment. The M12 GitHub workflow gates its build
+on a clean scan of the checked-out commit. A deployment job will be added in M15;
+this endpoint alone cannot stop a deployment outside that workflow. See
+[GitHub workflow](github-workflow.md).
