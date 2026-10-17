@@ -67,7 +67,17 @@ commit SHA, scan outcome, reporting acknowledgement, and build job result for:
 | Fork PR | Scans with read-only source access | Runs only if clean | None; backend secrets unavailable |
 
 Use only synthetic markers and redact screenshots. The actual clean/finding/error
-GitHub runs, backend record comparison, and screenshots remain M12 acceptance
+GitHub run links, backend record comparison, and screenshots form M12 acceptance
 evidence. Avoid testing a deliberate scanner failure on the protected production
 branch. The local fixture scanner and Node tests cover the converter behavior but
 do not substitute for GitHub run evidence.
+
+## Observed GitHub runs (17 October 2026)
+
+- [Clean `main` push, run 39054693870](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39054693870): head commit `a371a29d9776be05059d5626c2cc7533fb774481`; GitHub reports the scan and backend/frontend jobs successful. Release candidate was skipped, so this is not deployment or backend reporting evidence.
+- [Synthetic-finding PR #7, run 39055552521](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39055552521): branch head commit `2f4c84cd4843e98757722c79006e9e81847940b7`; the user confirmed `FINDINGS_DETECTED` in the scan log. GitHub reports the scanner step successful, the clean gate failed, and the build, reporting, and release-candidate steps skipped as intended. The PR workflow scans its merge candidate; the head SHA above identifies the PR branch rather than asserting the merge SHA.
+- [Scanner-error PR #8, run 39056726283](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39056726283): branch head commit `cd8e677165627317f636261de006b264fdf061d5`; the PR changes only `POLICY_REF` to an invalid all-zero SHA. The user confirmed `FAILED` in the scan log. GitHub reports the scanner step successful (it normalized the configuration error), the clean gate failed, and the build, reporting, and release-candidate jobs or steps skipped. This is a deliberate test-branch configuration failure, not a scanner binary crash.
+
+These observations verify the clean-push build and finding/error PR gate behavior.
+Fork, backend acknowledgement/record, image/deployment integration, and saved screenshot
+evidence are still pending.
