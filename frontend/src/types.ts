@@ -1,0 +1,15 @@
+export type Id = string;
+export type Page<T> = { content: T[]; page: number; size: number; totalElements: number; totalPages: number };
+export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+export type ScanStatus = 'QUEUED' | 'RUNNING' | 'CLEAN' | 'FINDINGS_DETECTED' | 'FAILED';
+export type IncidentStatus = 'OPEN' | 'RESOLVED' | 'IGNORED';
+export type User = { id: Id; username: string; email: string; role: 'DEVELOPER' | 'ADMIN' };
+export type Repository = { id: Id; ownerId: Id; githubOwner: string; githubName: string; canonicalUrl: string; defaultBranch: string; active: boolean; createdAt: string; updatedAt: string };
+export type Scan = { id: Id; repositoryId: Id; commitSha: string; branch: string; trigger: string; runId: string | null; runAttempt: number | null; scannerVersion: string | null; status: ScanStatus; failureCode: string | null; startedAt: string | null; completedAt: string | null; createdAt: string; updatedAt: string };
+export type Finding = { id: Id; scanId: Id; incidentId: Id; fingerprint: string; ruleId: string; severity: Severity; filePath: string; line: number; commitSha: string; sanitizedDescription: string; createdAt: string };
+export type Incident = { id: Id; repositoryId: Id; fingerprint: string; severity: Severity; status: IncidentStatus; reviewReason: string | null; lastActorType: string | null; lastActorReference: Id | null; version: number; createdAt: string; updatedAt: string };
+export type AuditEvent = { id: Id; repositoryId: Id; actorType: string; actorUserId: Id | null; actorCredentialId: Id | null; operation: string; targetType: string; targetId: Id; safeChangeSummary: string; occurredAt: string };
+export type Notification = { id: Id; incidentId: Id; auditEventId: Id; recipientConfigReference: string; status: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED'; attemptCount: number; safeErrorCode: string | null; createdAt: string; updatedAt: string };
+export type Activity = { id: Id; repositoryId: Id; operation: string; actorType: string; safeChangeSummary: string; occurredAt: string };
+export type RepositorySecurity = { repositoryId: Id; githubOwner: string; githubName: string; active: boolean; latestScanId: Id | null; latestCommitSha: string | null; latestScanStatus: ScanStatus | null; gateOutcome: 'ALLOW' | 'BLOCK'; gateReason: string };
+export type Overview = { repositories: number; activeRepositories: number; scans: number; findings: number; incidents: number; scanOutcomes: Record<ScanStatus, number>; findingsBySeverity: Record<Severity, number>; incidentsByStatus: Record<IncidentStatus, number>; failedNotifications: number; recentActivity: Activity[]; repositorySecurity: RepositorySecurity[] };

@@ -95,6 +95,7 @@ crash.*.log
 
 ### Generated frontend files (keep manifests and lockfiles tracked) ###
 node_modules/
+frontend/dist/
 dist/
 coverage/
 .next/
