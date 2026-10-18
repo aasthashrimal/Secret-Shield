@@ -3,6 +3,20 @@ title = "Secret Shield Gitleaks configuration"
 [extend]
 useDefault = true
 
+[[allowlists]]
+description = "Database migration documentation false positive"
+targetRules = ["generic-api-key"]
+condition = "AND"
+commits = ["184d393473790ef65508f33afce666f8aacaa8b8"]
+paths = ['''^docs/database-migrations[.]md$''']
+
+[[allowlists]]
+description = "Project overview documentation false positive"
+targetRules = ["generic-api-key"]
+condition = "AND"
+commits = ["da90f2d2a5255c360a1d47b4a5610ecf18bc28f8"]
+paths = ['''^PROJECT_OVERVIEW[.]md$''']
+
 # This unmistakably synthetic rule makes the isolated M06 fixture deterministic.
 # It does not resemble a credential accepted by any external service.
 [[rules]]
