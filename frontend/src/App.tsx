@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
-import { query } from './api';
+import { ApiError, query } from './api';
 import { useActions } from './actions';
 import { useResource } from './hooks';
 import { useSession } from './session';
@@ -25,7 +25,11 @@ function AuthPage({ register = false }: { register?: boolean }) {
       if (register) await createAccount(String(form.get('username')), email, password);
       else await login(email, password);
       navigate('/', { replace: true });
-    } catch (err) { setError(err instanceof Error ? err.message : 'Sign-in failed.'); }
+    } catch (err) {
+      setError(!register && err instanceof ApiError && err.status === 401
+        ? 'Incorrect email or password. New here? Create an account below.'
+        : err instanceof Error ? err.message : 'Sign-in failed.');
+    }
     finally { setBusy(false); }
   }
   return <main className="auth-page"><div className="auth-brand"><span className="brand-mark">✦</span><h1>Secret Shield</h1><p>See your repository security posture clearly.</p></div>

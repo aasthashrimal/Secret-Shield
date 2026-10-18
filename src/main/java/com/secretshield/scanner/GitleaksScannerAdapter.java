@@ -210,7 +210,7 @@ public class GitleaksScannerAdapter implements LocalScanner {
             byte[] output = process.getInputStream().readNBytes(4_097);
             String text = new String(output, StandardCharsets.UTF_8);
             if (process.exitValue() != 0 || output.length > 4_096
-                    || !text.matches("(?s).*\\b" + Pattern.quote(expectedVersion) + "\\b.*")) {
+                    || !matchesVersion(text, expectedVersion)) {
                 throw failure("SCANNER_VERSION_MISMATCH");
             }
             return expectedVersion;
@@ -222,6 +222,10 @@ public class GitleaksScannerAdapter implements LocalScanner {
             }
             throw failure("SCANNER_MISSING");
         }
+    }
+
+    static boolean matchesVersion(String output, String expectedVersion) {
+        return output.matches("(?s).*\\bv?" + Pattern.quote(expectedVersion) + "(?![\\w.]).*");
     }
 
     private List<SanitizedFindingInput> parseAndDeleteReport(Path report, Path source, String commit) {

@@ -1,7 +1,8 @@
 # Local backend setup
 
-This guide covers Modules 0 and 1 on Windows for Member 1. Commands were verified
-on this machine; teammate/GitHub setup is deferred. Run commands from the repository root.
+This guide covers the direct Windows backend setup used in Modules 0 and 1. For
+the separate PostgreSQL/backend/frontend Docker stack added in M13, see
+[Docker local stack](docker-setup.md). Run commands from the repository root.
 
 ## Prerequisites
 
