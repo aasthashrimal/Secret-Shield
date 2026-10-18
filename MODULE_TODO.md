@@ -188,10 +188,12 @@ Depends on M09 and the M05/M07 authenticated ingestion contract. Image-build ste
 
 Depends on runnable backend and frontend from M11; can proceed before final cloud integration.
 
-- [ ] **M13.1 — Member 1:** Add backend multi-stage Docker build and `.dockerignore`; choose the frontend serving arrangement compatible with the Azure App Service plan. **Done when:** images build reproducibly and no environment secret or raw report is copied into them.
-- [ ] **M13.2 — Member 1:** Add local Compose services for PostgreSQL/backend/frontend, safe environment placeholders, persistent DB volume, and startup/readiness behavior. Include Gitleaks only where the chosen local scanning path needs it. **Done when:** migrations run and the browser can reach authenticated APIs in containers.
-- [ ] **M13.3 — Member 1:** Verify restart/persistence, image startup, clean/finding scan flows, and environment handling. Define a non-destructive shutdown command and a separately labeled data-reset procedure. **Done when:** a fresh clone can run the full stack from documented commands.
+- [x] **M13.1 — Member 1:** Add backend multi-stage Docker build and `.dockerignore`; choose the frontend serving arrangement compatible with the Azure App Service plan. **Done when:** images build reproducibly and no environment secret or raw report is copied into them.
+- [x] **M13.2 — Member 1:** Add local Compose services for PostgreSQL/backend/frontend, safe environment placeholders, persistent DB volume, and startup/readiness behavior. Include Gitleaks only where the chosen local scanning path needs it. **Done when:** migrations run and the browser can reach authenticated APIs in containers.
+- [x] **M13.3 — Member 1:** Verify restart/persistence, image startup, clean/finding scan flows, and environment handling. Define a non-destructive shutdown command and a separately labeled data-reset procedure. **Done when:** a fresh clone can run the full stack from documented commands.
 - [ ] **M13.4 — Member 2:** Update local setup docs with the verified Docker path and troubleshooting. **Done when:** teammate reproduction succeeds and no commands silently delete database volumes.
+
+**M13 local verification (18 October 2026, Member 1 solo):** Both images built from filtered contexts; `.env.compose`, `target/`, raw reports, and Git history were excluded. The pinned Gitleaks binary reports `v8.30.0`; the adapter now accepts that exact prefixed version. PostgreSQL 18.6, backend, and frontend reached healthy state. Flyway applied V1–V9; the frontend proxy and an Edge browser registration/login/dashboard flow passed. `scripts/verify-compose.ps1` passed real clean/finding fixture scans and account/repository persistence after non-destructive `down`/`up`. The Java 21 default suite passed 78 tests (4 opt-in scanner tests skipped), and the frontend suite passed 5. The reproducible Windows steps and separate data-reset command are in `docs/docker-setup.md`. M13.4 remains open until teammate fresh-clone reproduction is observed.
 
 ## M14 — Terraform and Azure infrastructure
 
@@ -244,10 +246,11 @@ Depends on all required modules. Notifications and audit/history are required ou
 
 ## Start here
 
-Modules M00 (except deferred GitHub collaboration) through M09 and M11 are complete
-under the solo workflow. M10 local implementation is complete; M10.4 awaits live
-Azure validation after M14. M12 local workflow code exists; live GitHub acceptance
-and M13/M15-dependent build/deploy work remain.
+Modules M00 (except deferred GitHub collaboration) through M09, M11, and M13.1–M13.3
+are complete under the solo workflow. M10 local implementation is complete; M10.4
+awaits live Azure validation after M14. M12 local workflow code has clean/finding/error
+GitHub evidence; fork, backend reporting, and M13/M15-dependent CI/deployment evidence
+remain. M13.4 awaits teammate reproduction. M14 is the next implementation module.
 
 Foundation completion record (11 October 2026): All M00/M01 steps in the authorized solo scope are complete. M00.2 and M00.3 remain explicitly deferred; no GitHub settings or second-machine success are claimed. Later modules remain unchecked.
 

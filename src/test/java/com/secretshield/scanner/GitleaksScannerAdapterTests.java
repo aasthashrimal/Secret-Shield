@@ -2,6 +2,7 @@ package com.secretshield.scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
@@ -58,6 +59,14 @@ class GitleaksScannerAdapterTests {
     void rejectsOversizedReportBeforeParsing() {
         assertCode("SCANNER_REPORT_TOO_LARGE", () -> adapter(2).normalizeReport(
                 "[] ".getBytes(StandardCharsets.UTF_8), temporaryDirectory, COMMIT));
+    }
+
+    @Test
+    void acceptsPinnedVersionWithOrWithoutTheLinuxVPrefix() {
+        assertTrue(GitleaksScannerAdapter.matchesVersion("v8.30.0\n", "8.30.0"));
+        assertTrue(GitleaksScannerAdapter.matchesVersion("8.30.0\n", "8.30.0"));
+        assertFalse(GitleaksScannerAdapter.matchesVersion("v8.30.1\n", "8.30.0"));
+        assertFalse(GitleaksScannerAdapter.matchesVersion("v8.30.01\n", "8.30.0"));
     }
 
     private GitleaksScannerAdapter adapter(long maxReportBytes) {

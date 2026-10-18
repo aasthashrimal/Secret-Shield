@@ -47,3 +47,14 @@ it('shows the empty repository state after login and logs out', async () => {
   await user.click(screen.getByRole('button', { name: 'Log out' }));
   await screen.findByRole('heading', { name: 'Welcome back' });
 });
+
+it('offers registration after an unsuccessful login without claiming the session expired', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ code: 'UNAUTHORIZED' }, { status: 401 })));
+  render(<MemoryRouter initialEntries={['/login']}><SessionProvider><App /></SessionProvider></MemoryRouter>);
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText('Email'), 'not-registered@example.invalid');
+  await user.type(screen.getByLabelText('Password'), 'synthetic-pass');
+  await user.click(screen.getByRole('button', { name: 'Sign in' }));
+  expect((await screen.findByRole('alert')).textContent).toBe('Incorrect email or password. New here? Create an account below.');
+  expect(screen.getByRole('link', { name: 'Create account' }).getAttribute('href')).toBe('/register');
+});

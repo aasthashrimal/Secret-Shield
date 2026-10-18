@@ -4,8 +4,8 @@ Secret Shield is a DevSecOps project for detecting exposed credentials, blocking
 unsafe deployments, and tracking findings and incidents. The current checkout
 implements the backend through M11: authentication and roles, repositories,
 scans and findings, incident and audit history, the deployment gate, notification
-delivery, and a React dashboard. The M12 GitHub workflow is implemented locally but awaits
-configured GitHub runs and the later image/deployment modules.
+delivery, and a React dashboard. The M12 GitHub workflow has live clean, finding,
+and scanner-error evidence; its remaining cloud integration continues after M13.
 
 Modules 0 through 11 are currently maintained by Member 1 alone. GitHub collaboration
 is deferred; no second-machine reproduction is claimed.
@@ -41,6 +41,18 @@ npm run dev
 
 Open `http://localhost:5173`. See the [dashboard guide](docs/dashboard-guide.md)
 for the UI checks and disposable browser walkthrough.
+
+For the M13 Docker stack with its own PostgreSQL database, start Docker Desktop,
+then run from the repository root:
+
+```powershell
+powershell -NoProfile -File .\scripts\init-compose-env.ps1
+docker compose --env-file .env.compose up -d --build
+```
+
+Open `http://localhost:5173`. Use `docker compose --env-file .env.compose down`
+to stop while keeping database data. See the [Docker setup guide](docs/docker-setup.md)
+for scanner fixtures, persistence checks, and troubleshooting.
 
 - [Module checklist](MODULE_TODO.md)
 - [API contract and planned DTOs](docs/api-contract.md)
