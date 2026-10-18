@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +43,10 @@ class DashboardIT extends PostgresApiTest {
         Scan old = scan(repo, SHA_A, ScanStatus.CLEAN, true);
         scan(repo, SHA_B, ScanStatus.CLEAN, false);
         scan(foreign, SHA_A, ScanStatus.FAILED, false);
-        jdbc.update("UPDATE scans SET created_at = TIMESTAMP '2026-10-10 00:00:00' WHERE id = ?", old.getId());
+        Instant windowStart = Instant.now().minus(2, ChronoUnit.DAYS);
+        Instant windowEnd = Instant.now().plus(1, ChronoUnit.DAYS);
+        jdbc.update("UPDATE scans SET created_at = ? WHERE id = ?",
+                LocalDateTime.ofInstant(windowStart.minus(8, ChronoUnit.DAYS), ZoneOffset.UTC), old.getId());
 
         dashboard.overview(owner, null, null);
         JsonNode own = overview(owner, "");
@@ -55,7 +60,7 @@ class DashboardIT extends PostgresApiTest {
         assertEquals("BLOCK", own.get("repositorySecurity").get(0).get("gateOutcome").asText());
         assertEquals("SCAN_FAILED", own.get("repositorySecurity").get(0).get("gateReason").asText());
 
-        JsonNode window = overview(owner, "?from=2026-10-15T00:00:00Z&to=2026-10-18T00:00:00Z");
+        JsonNode window = overview(owner, "?from=" + windowStart + "&to=" + windowEnd);
         assertEquals(1, window.get("scans").asInt());
         assertEquals(1, window.get("scanOutcomes").get("CLEAN").asInt());
         assertEquals(1, window.get("repositories").asInt());

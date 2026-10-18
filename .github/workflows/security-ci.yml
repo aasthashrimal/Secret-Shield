@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -110,9 +111,10 @@ jobs:
           npm ci
           npm test
           npm run build
-      - name: Build container when M13 Dockerfile is present
-        if: hashFiles('Dockerfile') != ''
-        run: docker build --pull -t secret-shield:ci .
+      - name: Build backend and frontend containers
+        run: |
+          docker build --pull -f Dockerfile -t secret-shield-backend:ci .
+          docker build --pull -f frontend/Dockerfile -t secret-shield-frontend:ci frontend
 
   release_candidate:
     name: Trusted release candidate
@@ -124,4 +126,103 @@ jobs:
       - name: Record eligible commit
         env:
           ELIGIBLE_SHA: ${{ github.sha }}
-        run: echo "Verified release candidate $ELIGIBLE_SHA; Azure deployment is added in M15."
+        run: echo "Verified release candidate $ELIGIBLE_SHA."
+
+  publish:
+    name: Publish exact-commit images
+    needs: [scan, build, release_candidate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'aasthashrimal/Secret-Shield' && needs.scan.outputs.status == 'CLEAN' && needs.release_candidate.result == 'success' && vars.GHCR_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish the checked and reported commit
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/ci-publish-images.sh
+
+  bootstrap_publish:
+    name: One-time bootstrap image publish
+    needs: [scan, build]
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'aasthashrimal/Secret-Shield' && needs.scan.result == 'success' && needs.scan.outputs.status == 'CLEAN' && needs.build.result == 'success' && vars.BOOTSTRAP_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish one scanned main commit for initial cloud bootstrap
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/ci-publish-images.sh
+
+  deploy:
+    name: Deploy verified images to Azure
+    needs: [scan, build, release_candidate, publish]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'aasthashrimal/Secret-Shield' && needs.scan.outputs.status == 'CLEAN' && needs.release_candidate.result == 'success' && needs.publish.result == 'success' && vars.AZURE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    concurrency:
+      group: azure-dev-deployment
+      cancel-in-progress: false
+    environment: azure-dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - name: Verify public, exact-commit images
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          docker manifest inspect "ghcr.io/aasthashrimal/secret-shield-backend:$GITHUB_SHA" >/dev/null
+          docker manifest inspect "ghcr.io/aasthashrimal/secret-shield-frontend:$GITHUB_SHA" >/dev/null
+      - name: Sign in with environment-scoped OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$AZURE_CLIENT_ID" && test -n "$AZURE_TENANT_ID" && test -n "$AZURE_SUBSCRIPTION_ID"
+          test "$AZURE_SUBSCRIPTION_ID" = '90f1336d-e3cc-4aae-87f7-fcd90e2b877c'
+          token=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -er .value)
+          az login --service-principal --username "$AZURE_CLIENT_ID" --tenant "$AZURE_TENANT_ID" \
+            --federated-token "$token" --output none
+          unset token
+          az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+          test "$(az account show --query id -o tsv)" = "$AZURE_SUBSCRIPTION_ID"
+      - name: Point both apps at this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          az webapp config container set --resource-group rg-secretshield-dev-zboc5k \
+            --name secretshield-dev-zboc5k-api \
+            --container-image-name "ghcr.io/aasthashrimal/secret-shield-backend:$GITHUB_SHA" \
+            --container-registry-url https://ghcr.io --output none
+          az webapp config container set --resource-group rg-secretshield-dev-zboc5k \
+            --name secretshield-dev-zboc5k-web \
+            --container-image-name "ghcr.io/aasthashrimal/secret-shield-frontend:$GITHUB_SHA" \
+            --container-registry-url https://ghcr.io --output none
+      - name: Check both live containers and proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 18 --retry-delay 10 --retry-all-errors --max-time 10 \
+            https://secretshield-dev-zboc5k-api.azurewebsites.net/api/health/live >/dev/null
+          curl -fsS --retry 18 --retry-delay 10 --retry-all-errors --max-time 10 \
+            https://secretshield-dev-zboc5k-web.azurewebsites.net/health >/dev/null
+          curl -fsS --retry 18 --retry-delay 10 --retry-all-errors --max-time 10 \
+            https://secretshield-dev-zboc5k-web.azurewebsites.net/api/health/live >/dev/null

@@ -30,3 +30,32 @@ test('reporting retries transient errors with one identical payload and accepts 
   assert.deepEqual(bodies, [payload, payload]);
   await assert.rejects(submit(payload, { base: '', repositoryId: '7', credential: '' }), /configuration/);
 });
+
+test('reporting rejects permanent errors and mismatched acknowledgements without retrying', async () => {
+  const payload = JSON.stringify(normalize(0, '[]', meta));
+  let calls = 0;
+  const options = { base: 'https://example.invalid', repositoryId: '7', credential: 'fixture', sleep: async () => {} };
+  await assert.rejects(submit(payload, { ...options, fetcher: async () => { calls++; return { status: 401 }; } }), /HTTP 401/);
+  assert.equal(calls, 1);
+  calls = 0;
+  await assert.rejects(submit(payload, { ...options, fetcher: async () => {
+    calls++;
+    return { status: 201, json: async () => ({ commitSha: 'b'.repeat(40), status: 'CLEAN', repositoryId: '7' }) };
+  } }), /acknowledgement did not match/);
+  assert.equal(calls, 1);
+});
+
+test('reporting bounds repeated network failures and never sends invalid results', async () => {
+  const options = { base: 'https://example.invalid', repositoryId: '7', credential: 'fixture', sleep: async () => {} };
+  let calls = 0;
+  await assert.rejects(submit(JSON.stringify(normalize(0, '[]', meta)), { ...options, fetcher: async () => {
+    calls++;
+    throw Error('synthetic network failure');
+  } }), /synthetic network failure/);
+  assert.equal(calls, 3);
+  calls = 0;
+  await assert.rejects(submit(JSON.stringify({ status: 'CLEAN', commitSha: 'bad' }), {
+    ...options, fetcher: async () => { calls++; return { status: 201 }; }
+  }), /Invalid sanitized result/);
+  assert.equal(calls, 0);
+});

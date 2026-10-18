@@ -15,7 +15,7 @@ rule ID, relative path, line, and a fixed safe description. It emits one of
 error is `FAILED`. No raw report is uploaded as an artifact. The scan job fails
 unless the result is clean, so the backend/frontend build job is skipped for
 findings and errors. The build runs Maven tests/package, Node normalization tests,
-frontend tests/build, and a Docker image build once M13 adds a `Dockerfile`.
+frontend tests/build, and both backend/frontend Docker image builds.
 
 Reporting runs after scanning only for a trusted `main` push. It sends the same
 sanitized payload with GitHub run ID, attempt, commit SHA, branch, and `CI_PUSH`
@@ -42,14 +42,33 @@ configuration leaves reporting unsuccessful and skips release eligibility; it is
 never treated as backend ingestion evidence.
 
 The `Trusted release candidate` job is restricted to a clean, reported `main`
-push with a successful build and holds no deployment credential. This module does
-not deploy to Azure. M13 supplies the Dockerfile, and M15 will add a deployment
-job that depends on the clean scan and build for an approved
-branch/environment and identity. Protect `main` with required checks `Secret scan
+push with a successful build and holds no deployment credential. The prepared
+`publish` job requires that candidate and `GHCR_PUBLISH_ENABLED=true`; it builds
+and pushes both images under the exact 40-character SHA to GHCR. The prepared
+`deploy` job additionally requires the publish job and
+`AZURE_DEPLOY_ENABLED=true`, uses an `azure-dev` GitHub environment and
+short-lived OIDC token, and sets both App Services to those SHA-tagged images.
+Both switches are unset by default, so neither job has been run or verified on
+GitHub. The deployment job requires both GHCR packages to be anonymously
+readable and checks the backend, frontend, and frontend `/api` proxy afterward.
+See the [deployment guide](deployment-guide.md) for activation prerequisites.
+
+The first deployment has a bootstrap dependency: the placeholder backend
+cannot acknowledge a CI report. A separate, manually dispatched
+`bootstrap_publish` job can publish only a clean, successfully built commit on
+`main` when `BOOTSTRAP_PUBLISH_ENABLED=true`. It never deploys and never counts
+as a reported release candidate. After its exact-SHA images are public, the
+operator uses the reviewed [one-time deployment script](../scripts/bootstrap-cloud-deploy.ps1)
+to verify the successful GitHub run and point both apps at that SHA. Disable
+the bootstrap flag immediately afterward, configure backend CI reporting, and
+use the normal reported `publish`/`deploy` path for later commits. The flag is
+unset by default; no bootstrap run is claimed yet.
+
+Protect `main` with required checks `Secret scan
 and gate` and `Backend and frontend checks`, review for workflow/policy changes,
 and prevent bypasses by alternate deployment workflows. PR checks do not carry
-production credentials. GitHub repository settings and a live workflow run have
-not yet been verified in this checkout.
+production credentials. The reviewed M12 GitHub runs below verify earlier
+scan/build behavior; the new image/deploy jobs still need live evidence.
 
 ## Evidence to collect on GitHub
 
@@ -80,4 +99,6 @@ do not substitute for GitHub run evidence.
 
 These observations verify the clean-push build and finding/error PR gate behavior.
 Fork, backend acknowledgement/record, image/deployment integration, and saved screenshot
-evidence are still pending.
+evidence are still pending. The `publish` and `deploy` switches must stay off
+until M14 is applied, Key Vault values are provisioned, the exact-commit images
+are published and public, and the protected GitHub environment is reviewed.
