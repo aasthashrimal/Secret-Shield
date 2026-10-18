@@ -1,0 +1,23 @@
+# Copy privately to terraform.tfvars. Confirm region availability and monthly budget first.
+subscription_id = "00000000-0000-0000-0000-000000000000"
+location        = "centralindia"
+name_prefix     = "secretshield-dev"
+unique_suffix   = "abcd12"
+acs_data_location = "India"
+
+# Ongoing site (default): one B1 plan, existing Neon, public GHCR images after M15.
+# app_service_sku = "B1"
+# database_source = "neon"
+# image_source    = "placeholder"  # switch to ghcr after publishing images
+# image_tag       = "<the-scanned-40-character-commit-sha>"
+
+# Optional M14 presentation resources; review their cost and planned lifetime.
+# database_source      = "azure"
+# enable_acr           = true
+# image_source         = "acr"
+# postgres_sku         = "B_Standard_B1ms"
+# postgres_storage_mb  = 32768
+
+# Provide the Azure PostgreSQL password only through TF_VAR_postgres_admin_password
+# if database_source="azure". The ongoing Neon variant needs no Terraform DB password.
+# Initial apply uses public placeholder containers; M15 publishes both real images.
