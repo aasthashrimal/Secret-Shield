@@ -3,6 +3,7 @@ param(
     [string]$EnvironmentFile,
     [string]$VaultName = 'secretshielddevzboc5kkv',
     [switch]$IncludeNotifications,
+    [switch]$NotificationsOnly,
     [switch]$Apply
 )
 $ErrorActionPreference = 'Stop'
@@ -44,14 +45,15 @@ if ([Text.Encoding]::UTF8.GetByteCount($values['JWT_SECRET']) -lt 32) {
 }
 if ($VaultName -notmatch '^[a-zA-Z][a-zA-Z0-9-]{2,23}$') { throw 'Invalid Key Vault name.' }
 
-$secrets = @{
-    'db-url' = $values['DB_URL']
-    'db-username' = $values['DB_USERNAME']
-    'db-password' = $values['DB_PASSWORD']
-    'jwt-secret' = $values['JWT_SECRET']
+$secrets = @{}
+if (-not $NotificationsOnly) {
+    $secrets['db-url'] = $values['DB_URL']
+    $secrets['db-username'] = $values['DB_USERNAME']
+    $secrets['db-password'] = $values['DB_PASSWORD']
+    $secrets['jwt-secret'] = $values['JWT_SECRET']
 }
 $notificationValues = @('ACS_CONNECTION_STRING', 'ACS_SENDER_ADDRESS', 'NOTIFICATION_RECIPIENTS')
-if ($IncludeNotifications) {
+if ($IncludeNotifications -or $NotificationsOnly) {
     foreach ($key in $notificationValues) {
         if ([string]::IsNullOrWhiteSpace($values[$key])) { throw "Missing $key for notification setup." }
     }
@@ -60,7 +62,7 @@ if ($IncludeNotifications) {
     $secrets['notification-recipients'] = $values['NOTIFICATION_RECIPIENTS']
 }
 if (-not $Apply) {
-    Write-Host "Validated private Neon/JWT configuration. Ready to upload $($secrets.Count) named secrets after Azure approval."
+    Write-Host "Validated private configuration. Ready to upload $($secrets.Count) named secrets after Azure approval."
     return
 }
 

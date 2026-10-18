@@ -7,9 +7,9 @@ and completed checks in [remaining-prerequisites.md](remaining-prerequisites.md)
 
 | Scene | Action | Expected evidence | Current status |
 | --- | --- | --- | --- |
-| 1. Scope | Show architecture, local/CI/cloud status and budget | Proposed vs actual Azure resources clearly separated | Draft ready; final resource diagram pending |
+| 1. Scope | Show architecture, local/CI/cloud status and budget | Proposed vs actual Azure resources clearly separated | Actual diagram and 18-resource inventory ready |
 | 2. Login | Sign in with a synthetic owner account | Dashboard loads; another owner's data is inaccessible | Local tests/walkthrough; cloud pending |
-| 3. Clean scan | Trigger/show a clean fixture and trusted main CI run | `CLEAN`, same SHA in GitHub and backend, eligible gate | Local fixture and earlier GitHub gate; backend reporting pending |
+| 3. Clean scan | Trigger/show a clean fixture and trusted main CI run | `CLEAN`, same SHA in GitHub and backend, eligible gate | Main run 39142518443 is clean and built both images; backend reporting pending |
 | 4. Synthetic leak | Show a synthetic credential fixture in a disposable PR | `FINDINGS_DETECTED`; build/publish/deploy skipped | Prior PR #7 gate evidence; new publish/deploy skip proof pending |
 | 5. Scanner error | Show a bounded error fixture | `FAILED`; build/publish/deploy skipped | Prior PR #8 gate evidence; new skip proof pending |
 | 6. Investigation | Open a finding, change an incident, view audit/history | Owner-visible transition and immutable event | Local tests/dashboard; cloud pending |
@@ -22,5 +22,6 @@ passes. Do not use a recording as proof of a check that has not happened.
 If Azure is unavailable during the presentation, show the local Compose app
 and accurately label the cloud section as unavailable. Never expose tokens,
 database passwords, raw scanner output, ACS keys, or recipient addresses on
-screen. Slides can follow the nine scenes above; finalize them with actual
+screen. Slides follow the nine scenes above in
+[presentation-outline.md](presentation-outline.md). Finalize them with actual
 evidence and rehearse with the teammate before checking M16.4/M16.5.

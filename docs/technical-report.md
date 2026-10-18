@@ -1,7 +1,8 @@
 # Secret Shield technical report (draft)
 
-**Status:** Local implementation evidence through 18 October 2026. Cloud
-results, screenshots, and final teammate review are pending.
+**Status:** Local, GitHub CI, and Azure infrastructure evidence through 18
+October 2026. Application deployment, cloud acceptance, screenshots, and final
+teammate review are pending.
 
 ## Problem and scope
 
@@ -18,7 +19,8 @@ records carry branch/commit identities. Findings and incident transitions
 preserve audit history; high-risk events enter a retryable notification outbox.
 The dashboard uses a same-origin `/api` proxy in its container. Local Docker
 Compose runs frontend, backend and disposable PostgreSQL. See
-[cloud-design.md](cloud-design.md) for the proposed Azure topology and
+[azure-architecture-actual.md](azure-architecture-actual.md) for the applied
+Azure topology, [cloud-design.md](cloud-design.md) for design alternatives, and
 [data-model.md](data-model.md) for the database model.
 
 M00–M11 implement the local foundation, domain/API workflow and dashboard.
@@ -48,9 +50,15 @@ optional and excluded. See [deployment-guide.md](deployment-guide.md).
   built locally.
 - The earlier GitHub clean main push, synthetic finding, and scanner-error
   runs are linked with identities in [github-workflow.md](github-workflow.md).
+- PR #11 passed both protected checks and merged as `95dc4a3`. Merged-main run
+  `39142518443` passed the scan, backend/frontend checks, and both container
+  builds. Reporting to the placeholder backend failed safely; release candidate,
+  bootstrap publication, normal publication, and Azure deployment were skipped.
 - Terraform formatting, validation, and three mocked plan tests passed for
   M14. The USD 20/month alert budget, protected state storage, and all 18
-  approved application resources now exist; both URLs show placeholder pages.
+  approved application resources now exist. A user-run HTTP check on 18 October
+  returned 200 from both URLs but found no Secret Shield health/content,
+  confirming that both still serve placeholders.
   Four approved Neon/JWT secret versions were uploaded; Azure reports all four
   backend references `Resolved` without disclosing their values.
 - A [partial deliverable security audit](security-audit.md) classified local

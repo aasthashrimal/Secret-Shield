@@ -42,7 +42,7 @@ Terraform state contains 18 managed objects in the approved plan:
 | Hosting (3) | B1 Linux service plan; backend and frontend Linux web apps | Azure resource reads show both apps `Running`, HTTPS-only and publicly reachable; each placeholder URL returned HTTP 200. |
 | Network (3) | Application resource group, VNet and delegated web-integration subnet | Terraform state and Azure resource inventory. |
 | Secrets (3) | RBAC Key Vault, backend `Secrets User` assignment and operator `Secrets Officer` assignment | Vault read shows RBAC and purge protection enabled. Four approved Neon/JWT values were uploaded privately; Azure reports all four backend references `Resolved`. |
-| Delivery identity (5) | Deployment identity, GitHub `azure-dev` federated credential, two app-scoped `Website Contributor` assignments, image-pull identity | Terraform state; GitHub environment is **not yet configured**. |
+| Delivery identity (5) | Deployment identity, GitHub `azure-dev` federated credential, two app-scoped `Website Contributor` assignments, image-pull identity | Terraform state; GitHub `azure-dev` now exists with a `main`-only branch policy and three non-secret Azure identity variables. |
 | Notifications (4) | Communication Service, Email service, Azure-managed email domain and domain association | Terraform state; Azure reports the managed domain `Succeeded` and default `DoNotReply` sender username. A real sender address and delivery are **not yet verified**. |
 
 This inventory describes applied infrastructure and secret-reference status.
