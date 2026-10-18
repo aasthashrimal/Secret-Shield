@@ -45,8 +45,17 @@ try {
 } finally { Pop-Location }
 
 $apiPath = "repos/$repository/environments/$environment"
-$existing = & gh api $apiPath 2>$null
+$existing = $null
+$lookupError = $null
+try {
+    $existing = & gh api $apiPath 2>&1
+} catch {
+    $lookupError = $_.Exception.Message
+}
 if ($LASTEXITCODE -ne 0) {
+    if ($lookupError -notmatch 'HTTP 404') {
+        throw 'Could not inspect the GitHub deployment environment.'
+    }
     $body = '{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
     $tempFile = Join-Path $root 'target/github-environment-setup.json'
     [IO.File]::WriteAllText($tempFile, $body, (New-Object Text.UTF8Encoding($false)))

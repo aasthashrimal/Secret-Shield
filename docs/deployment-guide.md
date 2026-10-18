@@ -23,14 +23,15 @@ not shut down billable resources.
    those values: it creates new secret versions. `-IncludeNotifications` is
    separate and still requires an approved recipient, real ACS connection
    string and sender, plus separate review.
-3. Install and authenticate GitHub CLI, then run
-   `powershell -NoProfile -File scripts/prepare-github-environment.ps1` to
-   preview the environment setup. After GitHub changes are approved and M14
-   outputs exist, `-Apply` creates `azure-dev` with a `main`-only deployment
-   branch rule and sets the non-secret OIDC identity IDs. It leaves publishing
-   and deployment switches off. Protect `main` with required checks **Secret
-   scan and gate** and **Backend and frontend checks**; review the actual
-   GitHub settings before enabling deployment.
+3. **Environment completed:** GitHub CLI authentication was verified, and
+   `scripts/prepare-github-environment.ps1 -Apply` created `azure-dev` with a
+   `main`-only deployment branch rule and set the three non-secret OIDC identity
+   variables. A second run succeeded idempotently. Publishing and deployment
+   switches remain unset. `main` currently has **no branch protection**;
+   configure required checks **Secret scan and gate** and **Backend and
+   frontend checks** before enabling deployment. The dry-run helper
+   `scripts/prepare-github-branch-protection.ps1` previews those exact settings;
+   its `-Apply` switch changes GitHub only after separate review.
 4. **Bootstrap the first real backend before CI reporting.** The placeholder
    cannot acknowledge a report, so a normal release candidate cannot yet
    publish. After separately approving one-time image publication, enable
@@ -120,7 +121,7 @@ retention require a separate reviewed cost/data decision.
 ## Evidence still required
 
 ACS notification secret provisioning; GHCR image visibility and exact SHA; GitHub
-environment/branch checks; cloud Key Vault reference resolution; live
+branch checks; live
 login/dashboard/scan/incident/audit/gate checks; real ACS success and
 failure/retry; backup restore; rollback; and sanitized screenshots/logs are
 all **pending**. The scripts and workflow above are locally prepared only.
