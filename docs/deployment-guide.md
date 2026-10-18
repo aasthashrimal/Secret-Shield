@@ -22,16 +22,21 @@ not shut down billable resources.
    future input without uploading. Do not rerun with `-Apply` unless rotating
    those values: it creates new secret versions. `-IncludeNotifications` is
    separate and still requires an approved recipient, real ACS connection
-   string and sender, plus separate review.
+   string and sender, plus separate review. `-NotificationsOnly` uploads just
+   the three notification secrets after that review, without rotating the
+   four core secrets.
 3. **Environment completed:** GitHub CLI authentication was verified, and
    `scripts/prepare-github-environment.ps1 -Apply` created `azure-dev` with a
    `main`-only deployment branch rule and set the three non-secret OIDC identity
    variables. A second run succeeded idempotently. Publishing and deployment
-   switches remain unset. `main` currently has **no branch protection**;
-   configure required checks **Secret scan and gate** and **Backend and
-   frontend checks** before enabling deployment. The dry-run helper
+   switches remain unset. `main` is protected with required checks **Secret
+   scan and gate** and **Backend and frontend checks**. The dry-run helper
    `scripts/prepare-github-branch-protection.ps1` previews those exact settings;
-   its `-Apply` switch changes GitHub only after separate review.
+   its `-Apply` switch changes GitHub only after separate review. GitHub treated
+   an earlier zero-approval PR rule as requiring a reviewer. After explicit
+   approval, only that review rule was removed; both required checks,
+   administrator enforcement, conversation resolution, and force-push/deletion
+   protection remain enabled.
 4. **Bootstrap the first real backend before CI reporting.** The placeholder
    cannot acknowledge a report, so a normal release candidate cannot yet
    publish. After separately approving one-time image publication, enable
@@ -120,8 +125,7 @@ retention require a separate reviewed cost/data decision.
 
 ## Evidence still required
 
-ACS notification secret provisioning; GHCR image visibility and exact SHA; GitHub
-branch checks; live
+ACS notification secret provisioning; GHCR image visibility and exact SHA; live
 login/dashboard/scan/incident/audit/gate checks; real ACS success and
 failure/retry; backup restore; rollback; and sanitized screenshots/logs are
 all **pending**. The scripts and workflow above are locally prepared only.

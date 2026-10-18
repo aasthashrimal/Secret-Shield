@@ -6,7 +6,7 @@ $path = "repos/$repository/branches/main/protection"
 $checks = @('Secret scan and gate', 'Backend and frontend checks')
 
 if (-not $Apply) {
-    Write-Host "Planned GitHub change for $repository main: require up-to-date checks '$($checks -join "' and '")', require PRs with zero approvals while working solo, enforce for administrators, and disallow force pushes/deletion. No settings changed."
+    Write-Host "Planned GitHub change for $repository main: require up-to-date checks '$($checks -join "' and '")', enforce for administrators, and disallow force pushes/deletion. Review approvals are not required for solo work. No settings changed."
     return
 }
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
@@ -36,11 +36,7 @@ foreach ($check in $checks) {
 $settings = @{
     required_status_checks = @{ strict = $true; contexts = $checks }
     enforce_admins = $true
-    required_pull_request_reviews = @{
-        dismiss_stale_reviews = $true
-        require_code_owner_reviews = $false
-        required_approving_review_count = 0
-    }
+    required_pull_request_reviews = $null
     restrictions = $null
     required_linear_history = $false
     allow_force_pushes = $false
