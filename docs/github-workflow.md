@@ -114,5 +114,31 @@ scan 9 in live repository record 5. The stored finding contains only rule
 severity. The gate failed and every build, release, publication and deployment
 job skipped. The raw report was never uploaded as an artifact, and the
 disposable repository's Actions secret and variables were removed afterward.
-This completes trusted clean and finding-bearing reporting evidence; sanitized
-screenshots remain M12.6 presentation evidence.
+This completes trusted clean and finding-bearing reporting evidence.
+
+## Sanitized workflow evidence (19 October 2026)
+
+Final clean run `39247034941` deployed exact commit
+`8e36c800eecfb338bca68c4654393b37db0eff03`. The screenshot shows successful
+scan, build, release-candidate, exact-commit publication and Azure deployment;
+the one-time bootstrap job remained skipped.
+
+![Final clean exact-commit deployment](evidence/final-clean-deploy-run.png)
+
+Disposable run `39245401264` checked commit
+`563c96d876ea2dd7b4ab27b72e4921d82e42928b`. Its finding gate failed and every
+downstream job skipped.
+
+![Finding-bearing run blocks downstream jobs](evidence/m12-finding-blocked-run.png)
+
+The matching live backend record is repository 5, scan 9. It stores only rule
+`synthetic-low`, LOW severity and safe location
+`m12-trusted-finding-fixture.txt:2`; no matched value appears.
+
+![Sanitized finding stored once in the dashboard](evidence/m12-finding-dashboard.png)
+
+Scanner-error run `39056726283` covers PR #8/head commit
+`cd8e677165627317f636261de006b264fdf061d5`. The scan gate failed and build and
+release candidacy skipped.
+
+![Controlled scanner error blocks downstream jobs](evidence/m12-scanner-error-run.png)
