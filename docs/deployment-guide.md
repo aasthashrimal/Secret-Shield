@@ -113,7 +113,10 @@ request tracing remain disabled. A private download audit found no passwords,
 JWTs, ACS keys, bearer tokens, credential assignments, or credential-bearing
 URLs. Flyway INFO output did include the non-credential database endpoint, so
 `application.yml` suppresses only `org.flywaydb.core.FlywayExecutor` INFO output;
-repeat the private audit after that image deploys. [Microsoft's App Service
+merged-main run `39242095907` deployed that change. A private scan of 39 files
+found zero private-value matches in the new deployment window and zero credential
+patterns. Eighteen retained pre-fix endpoint lines contain no credential and
+expire under the three-day policy. [Microsoft's App Service
 guide](https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container)
 documents log access. Never publish raw scanner reports, JWTs, DB URLs/passwords,
 ACS keys, recipient addresses, or whole Terraform state/plan files in logs or
@@ -141,12 +144,17 @@ incompatible, use the reviewed database backup/recovery procedure first.
 Disable `AZURE_DEPLOY_ENABLED` before debugging repeated deploy failures.
 Never use `terraform destroy` as a routine shutdown: it may delete app data
 and leave protected state/Key Vault recovery objects. Teardown and resource
-retention require a separate reviewed cost/data decision.
+retention require a separate reviewed cost/data decision. For the current
+deployment, `9378f1a41c8058766030f2dba4b0bae0ae58a1f7` is the reviewed previous
+healthy exact-SHA rollback candidate; it was not redeployed because the current
+release passed. The current retention decision is to keep both apps, Key Vault,
+ACS, protected Terraform state, Neon data, and the private tested dump through
+the presentation. Any later teardown must preserve required evidence/data and
+receive separate approval.
 
 ## Evidence still required
 
-Deploy the narrow Flyway logging change, repeat the private log scan with zero
-private-value/credential matches, and record the reviewed exact-SHA rollback and
-controlled teardown decisions. Sanitized screenshots remain presentation work.
-GHCR publication/deployment, live login/dashboard/scan/incident/audit/gate,
-real ACS success plus failure/retry, and Neon backup/restore are verified.
+Sanitized cloud screenshots remain presentation work. GHCR
+publication/deployment, live login/dashboard/scan/incident/audit/gate, real ACS
+success plus failure/retry, bounded/redacted operational logging, reviewed
+rollback/teardown procedures, and Neon backup/restore are verified.
