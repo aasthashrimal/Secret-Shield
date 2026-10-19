@@ -1,10 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { normalize } from './ci-normalize-report.mjs';
 import { submit } from './ci-report.mjs';
 
 const meta = { sha: 'a'.repeat(40), branch: 'main', runId: '1234', attempt: 1, trigger: 'CI_PUSH' };
 const leak = { RuleID: 'generic-api-key', File: 'config/demo.txt', StartLine: 4, Secret: 'never-include-this', Match: 'never-include-this' };
+const workflow = readFileSync(new URL('../.github/workflows/security-ci.yml', import.meta.url), 'utf8');
+
+test('pull requests keep reporting, package and cloud credentials behind trusted push conditions', () => {
+  assert.match(workflow, /\n  pull_request:\s*\n    branches: \[main\]/);
+  assert.doesNotMatch(workflow, /pull_request_target/);
+  assert.match(workflow, /permissions:\s*\n  contents: read/);
+  assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && steps\.scanner\.outputs\.status != ''/);
+  assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && github\.repository == 'aasthashrimal\/Secret-Shield'.*vars\.GHCR_PUBLISH_ENABLED == 'true'/);
+  assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && github\.repository == 'aasthashrimal\/Secret-Shield'.*vars\.AZURE_DEPLOY_ENABLED == 'true'/);
+  assert.equal(workflow.match(/id-token: write/g)?.length, 1);
+  assert.match(workflow, /environment: azure-dev/);
+});
 
 test('clean, finding and process failure remain distinct and omit raw values', () => {
   assert.equal(normalize(0, '[]', meta).status, 'CLEAN');
@@ -28,7 +41,10 @@ test('reporting retries transient errors with one identical payload and accepts 
       { status: 200, json: async () => ({ commitSha: meta.sha, status: 'FINDINGS_DETECTED', repositoryId: '7' }) }; } });
   assert.equal(response.status, 'FINDINGS_DETECTED');
   assert.deepEqual(bodies, [payload, payload]);
-  await assert.rejects(submit(payload, { base: '', repositoryId: '7', credential: '' }), /configuration/);
+  let calls = 0;
+  await assert.rejects(submit(payload, { base: 'https://example.invalid', repositoryId: '7', credential: '',
+    fetcher: async () => { calls++; return { status: 201 }; } }), /configuration/);
+  assert.equal(calls, 0);
 });
 
 test('reporting rejects permanent errors and mismatched acknowledgements without retrying', async () => {

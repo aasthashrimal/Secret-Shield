@@ -42,33 +42,35 @@ configuration leaves reporting unsuccessful and skips release eligibility; it is
 never treated as backend ingestion evidence.
 
 The `Trusted release candidate` job is restricted to a clean, reported `main`
-push with a successful build and holds no deployment credential. The prepared
+push with a successful build and holds no deployment credential. The verified
 `publish` job requires that candidate and `GHCR_PUBLISH_ENABLED=true`; it builds
 and pushes both images under the exact 40-character SHA to GHCR. The prepared
 `deploy` job additionally requires the publish job and
 `AZURE_DEPLOY_ENABLED=true`, uses an `azure-dev` GitHub environment and
 short-lived OIDC token, and sets both App Services to those SHA-tagged images.
-Both switches are unset by default, so neither job has been run or verified on
-GitHub. The deployment job requires both GHCR packages to be anonymously
+Both switches were enabled only after separate approval and successful bootstrap.
+The deployment job requires both GHCR packages to be anonymously
 readable and checks the backend, frontend, and frontend `/api` proxy afterward.
 See the [deployment guide](deployment-guide.md) for activation prerequisites.
 
-The first deployment has a bootstrap dependency: the placeholder backend
-cannot acknowledge a CI report. A separate, manually dispatched
+The first deployment had a bootstrap dependency: the placeholder backend could
+not acknowledge a CI report. A separate, manually dispatched
 `bootstrap_publish` job can publish only a clean, successfully built commit on
 `main` when `BOOTSTRAP_PUBLISH_ENABLED=true`. It never deploys and never counts
 as a reported release candidate. After its exact-SHA images are public, the
 operator uses the reviewed [one-time deployment script](../scripts/bootstrap-cloud-deploy.ps1)
 to verify the successful GitHub run and point both apps at that SHA. Disable
 the bootstrap flag immediately afterward, configure backend CI reporting, and
-use the normal reported `publish`/`deploy` path for later commits. The flag is
-unset by default; no bootstrap run is claimed yet.
+use the normal reported `publish`/`deploy` path for later commits. Bootstrap run
+`39149383125` published the first images, and the flag is disabled again.
 
 Protect `main` with required checks `Secret scan
 and gate` and `Backend and frontend checks`, review for workflow/policy changes,
 and prevent bypasses by alternate deployment workflows. PR checks do not carry
-production credentials. The reviewed M12 GitHub runs below verify earlier
-scan/build behavior; the new image/deploy jobs still need live evidence.
+production credentials. A focused Node policy test rejects
+`pull_request_target`, requires trusted-main conditions around reporting,
+publication and deployment, and confirms only the protected deployment job can
+request an OIDC token. Missing reporting credentials fail before any request.
 
 ## Evidence to collect on GitHub
 
@@ -97,8 +99,13 @@ do not substitute for GitHub run evidence.
 - [Synthetic-finding PR #7, run 39055552521](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39055552521): branch head commit `2f4c84cd4843e98757722c79006e9e81847940b7`; the user confirmed `FINDINGS_DETECTED` in the scan log. GitHub reports the scanner step successful, the clean gate failed, and the build, reporting, and release-candidate steps skipped as intended. The PR workflow scans its merge candidate; the head SHA above identifies the PR branch rather than asserting the merge SHA.
 - [Scanner-error PR #8, run 39056726283](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39056726283): branch head commit `cd8e677165627317f636261de006b264fdf061d5`; the PR changes only `POLICY_REF` to an invalid all-zero SHA. The user confirmed `FAILED` in the scan log. GitHub reports the scanner step successful (it normalized the configuration error), the clean gate failed, and the build, reporting, and release-candidate jobs or steps skipped. This is a deliberate test-branch configuration failure, not a scanner binary crash.
 
-These observations verify the clean-push build and finding/error PR gate behavior.
-Fork, backend acknowledgement/record, image/deployment integration, and saved screenshot
-evidence are still pending. The `publish` and `deploy` switches must stay off
-until M14 is applied, Key Vault values are provisioned, the exact-commit images
-are published and public, and the protected GitHub environment is reviewed.
+Later merged-main run
+[`39242095907`](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39242095907)
+reported and deployed exact SHA `f151f5434c2e664ab5dd42105f851c52170a23c1`.
+Live repository record 4 contained exactly one matching scan (ID 8), attempt 1,
+`CI_PUSH`, Gitleaks 8.30.0, `CLEAN`, zero findings, a machine audit event and an
+`ALLOW/CLEAN` gate. PRs #13, #14, #16 and #17 passed scan/build while every
+release/deployment job skipped; unsafe PR #15 ran only the failing scan gate.
+This verifies trusted clean reporting and the secret-free PR path. M12.3 still
+needs one finding-bearing trusted run in a disposable repository; sanitized
+screenshots remain M12.6 presentation evidence.
