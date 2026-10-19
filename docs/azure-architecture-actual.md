@@ -47,6 +47,6 @@ Terraform state contains 18 managed objects in the approved plan:
 
 This inventory describes applied infrastructure and secret-reference status.
 M15 still needs actual scanned images, GitHub reporting/OIDC setup, deployment, and live API/
-notification checks. The protected Terraform Blob state account and USD 20
-monthly alert budget are separate pre-existing resources, outside the 18-item
+notification checks. The protected Terraform Blob state account and monthly
+Cost Management alert budget are separate pre-existing resources, outside the 18-item
 application plan.

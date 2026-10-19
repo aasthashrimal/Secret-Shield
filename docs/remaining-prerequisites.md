@@ -21,4 +21,4 @@ notification addresses.
 The activation order and dry-run commands are in [deployment-guide.md](deployment-guide.md).
 Each GitHub, Key Vault, image-publication, or Azure action needs its own review
 under the user's instruction. Before any paid resource creation, show the exact
-action and updated cost estimate; the USD 20 budget is an alert, not a cap.
+action and updated cost estimate; the billing-currency budget is an alert, not a cap.

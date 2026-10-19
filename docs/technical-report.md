@@ -1,87 +1,89 @@
-# Secret Shield technical report (draft)
+# Secret Shield technical report
 
-**Status:** Local, GitHub CI, and Azure infrastructure evidence through 18
-October 2026. Application deployment, cloud acceptance, screenshots, and final
-teammate review are pending.
+**Verified 19 October 2026:** Secret Shield is implemented, tested and deployed.
+Final run `39247034941` published and deployed exact commit
+`8e36c800eecfb338bca68c4654393b37db0eff03`. Backend, frontend and the
+same-origin API proxy returned HTTP 200.
 
 ## Problem and scope
 
-Secret Shield detects exposed credentials in repository history, blocks unsafe
-delivery, and gives owners a place to review findings and incidents. It has a
-Spring Boot API, PostgreSQL/Flyway data layer, React dashboard, a pinned
-Gitleaks scanner, and a GitHub Actions gate. Scans distinguish `CLEAN`,
-`FINDINGS_DETECTED`, and `FAILED`; scanner failure does not pass the gate.
+Secret Shield detects possible credentials in Git history, blocks unsafe
+delivery, and gives repository owners a place to investigate findings and
+incidents. It distinguishes `CLEAN`, `FINDINGS_DETECTED`, and scanner `FAILED`
+outcomes; findings and tool failures fail closed. It manages scan evidence and
+response workflow but does not rotate provider credentials automatically.
 
 ## Architecture and modules
 
-Authentication uses JWT, owner-scoped repository APIs, and role checks. Scan
-records carry branch/commit identities. Findings and incident transitions
-preserve audit history; high-risk events enter a retryable notification outbox.
-The dashboard uses a same-origin `/api` proxy in its container. Local Docker
-Compose runs frontend, backend and disposable PostgreSQL. See
-[azure-architecture-actual.md](azure-architecture-actual.md) for the applied
-Azure topology, [cloud-design.md](cloud-design.md) for design alternatives, and
-[data-model.md](data-model.md) for the database model.
+The system combines a Spring Boot API, PostgreSQL/Flyway data layer, React/Nginx
+dashboard, pinned Gitleaks scanner, GitHub Actions gate, Docker Compose, and an
+Azure deployment. JWT and DEVELOPER/ADMIN authorization protect owner-scoped
+resources. Sanitization removes raw match values before persistence, HTTP, logs
+or artifacts. Findings link to auditable incidents; HIGH/CRITICAL events use a
+bounded retryable notification outbox.
 
-M00–M11 implement the local foundation, domain/API workflow and dashboard.
-M12 has a scan/gate workflow with local reporting tests and prior live GitHub
-clean/finding/error runs; full reporting/deployment evidence is pending. M13
-has a locally tested Compose stack. M14 has validated Terraform and an approved,
-applied 18-resource infrastructure plan with placeholder pages. M15 contains guarded publish/deploy automation and
-dry-run setup helpers, but no live application deployment yet.
+Production uses two Linux App Services on one B1 plan, Key Vault references,
+managed identities, VNet integration, ACS Email, protected Terraform state, and
+the existing TLS Neon database. See the [data model](data-model.md),
+[actual architecture](azure-architecture-actual.md), and
+[deployment guide](deployment-guide.md).
 
-## Security and delivery choices
+M00-M11 implement foundations, APIs, scanner, notifications and dashboard. M12
+enforces scan/report/build/release boundaries. M13 supplies containers. M14
+provisions infrastructure. M15 deploys exact checked commits and defines
+operations. M16 records final tests, audit and demonstration evidence.
 
-The scanner uses a pinned image, read-only checkout, restricted container and
-redacted normalized report. PR jobs do not receive Azure deployment identity.
-Trusted main pushes need a clean scan, successful build, and matching backend
-report before publication. Optional publish/deploy flags are disabled until
-separately activated. The Azure apps use a Key Vault for DB/JWT/ACS
-secrets, Neon JDBC TLS, and environment-scoped GitHub OIDC. The approved M14 plan
-created 18 resources in two passes; Azure PostgreSQL and ACR are
-optional and excluded. See [deployment-guide.md](deployment-guide.md).
+## Security and DevOps decisions
+
+- Gitleaks 8.30.0 and third-party Actions are pinned.
+- PR workflows receive read-only source access and no backend/cloud secret.
+- Trusted `main` reporting sends only rule/path/line metadata through a scoped
+  machine credential with bounded retries and run identity.
+- Publication requires clean scan, acknowledged report and successful build for
+  the same commit. Deployment also requires exact public images and protected
+  `azure-dev` OIDC.
+- Runtime secrets are Key Vault references. HTTPS is required, basic publishing
+  authentication is disabled, and logs have bounded retention.
+- Terraform created 18 approved application resources. Azure PostgreSQL and ACR
+  were excluded; Neon and public exact-SHA GHCR images are used.
 
 ## Verified results
 
-- On 18 October, the disposable PostgreSQL suite passed 147 tests with zero
-  failures/errors; four opt-in real-scanner tests were skipped.
-- Frontend Vitest passed 6 tests in 3 files. Local Node reporting tests passed
-  4 targeted negative/retry cases. Both backend and frontend Docker images
-  built locally.
-- The earlier GitHub clean main push, synthetic finding, and scanner-error
-  runs are linked with identities in [github-workflow.md](github-workflow.md).
-- PR #11 passed both protected checks and merged as `95dc4a3`. Merged-main run
-  `39142518443` passed the scan, backend/frontend checks, and both container
-  builds. Reporting to the placeholder backend failed safely; release candidate,
-  bootstrap publication, normal publication, and Azure deployment were skipped.
-- Terraform formatting, validation, and three mocked plan tests passed for
-  M14. The USD 20/month alert budget, protected state storage, and all 18
-  approved application resources now exist. A user-run HTTP check on 18 October
-  returned 200 from both URLs but found no Secret Shield health/content,
-  confirming that both still serve placeholders.
-  Four approved Neon/JWT secret versions were uploaded; Azure reports all four
-  backend references `Resolved` without disclosing their values.
-- A [partial deliverable security audit](security-audit.md) classified local
-  scanner matches without publishing matched values. Image, cloud-log, and
-  browser-output review still need the final deployed build.
+- 147 PostgreSQL tests, six frontend tests and five workflow/reporting tests
+  passed; both containers built.
+- Clean scan 8 matched trusted run `39242095907` once. Disposable run
+  `39245401264` created scan 9 with one LOW sanitized finding and skipped every
+  downstream job. PR #8 demonstrated controlled scanner failure.
+- [Final run `39247034941`](https://github.com/aasthashrimal/Secret-Shield/actions/runs/39247034941)
+  passed scan, build, release, exact-SHA publication and Azure deployment.
+- Browser registration/login/dashboard/logout/relogin passed.
+- Live HIGH evidence covered three-attempt provider failure and later
+  one-attempt `SENT`; incident 2 resolution/history passed while its gate stayed
+  blocked.
+- A private 39-file cloud-log audit found no private-value or credential pattern
+  after final suppression. A Neon dump restored tables and Flyway history into
+  disposable PostgreSQL 18.
+- The [security audit](security-audit.md) found no real secret in deliverables or
+  four local images. Temporary credential 4 is revoked and its GitHub settings
+  were removed.
+- All seven live presentation-path checks passed; reviewed fallback screenshots
+  are under `docs/evidence/`.
 
-These results establish local behavior and earlier CI gate outcomes. They do
-not establish a live Azure login to Secret Shield, notification delivery,
-image publish, or deployed Secret Shield website.
+## Limitations and retention
 
-## Pending results and limitations
+The teammate was unavailable, so collaborator workflow and second-machine
+reproduction remain deferred. The private evidence repository is retained. The
+live site depends on Azure, Neon and ACS. The Education Hub display checked on
+19 October 2026 showed ₹9,599 available credit, 393 days remaining, expiry on
+15 November 2027, and ₹24.07 October cost. Budget alerts notify but do not stop
+spending.
 
-Complete the [acceptance matrix](acceptance-checklist.md) and
-[prerequisite list](remaining-prerequisites.md) after separately approved cloud
-actions. Capture actual run ID/SHA, backend scan ID, deployed image SHA,
-dashboard/incident/audit outcome, ACS delivery status, backup restore and
-rollback result. Sanitize evidence before publication. The student credit
-display expires 15 November 2026; a permanent website link depends on renewed
-credit or another funded hosting choice. The Azure budget alerts but does not
-automatically stop spending.
+Resources remain live through the presentation. No rollback, database overwrite
+or Terraform destroy was performed. Any teardown must preserve evidence/data
+and receive separate approval.
 
 ## Future work
 
-After final acceptance, review operational cost and a long-term hosting plan,
-automate backup verification, and add observability only where it improves
-incident response. Do not claim these as current functionality.
+Possible extensions include provider-side credential rotation, scheduled restore
+verification, richer observability, provider installation flows and independent
+setup reproduction. These are future work, not current claims.

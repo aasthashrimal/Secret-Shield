@@ -6,7 +6,8 @@ the database remains on Neon. Exact-commit GHCR images are public and trusted
 `main` pushes deploy both applications through the protected `azure-dev`
 environment. Run `39199309614` deployed commit
 `9378f1a41c8058766030f2dba4b0bae0ae58a1f7`; backend, frontend, and proxy
-health checks passed. The student credit display expires **15 November 2026**;
+health checks passed. The Education Hub display checked on 19 October 2026
+showed **₹9,599 available credit** and expiry on **15 November 2027**;
 check renewal before promising a permanent GitHub website link. The configured
 budget sends alerts but does not shut down billable resources.
 
@@ -152,9 +153,35 @@ ACS, protected Terraform state, Neon data, and the private tested dump through
 the presentation. Any later teardown must preserve required evidence/data and
 receive separate approval.
 
-## Evidence still required
+## Reviewed cloud evidence
 
-Sanitized cloud screenshots remain presentation work. GHCR
-publication/deployment, live login/dashboard/scan/incident/audit/gate, real ACS
-success plus failure/retry, bounded/redacted operational logging, reviewed
-rollback/teardown procedures, and Neon backup/restore are verified.
+The resource-group capture shows only safe resource names, types and locations.
+Terraform manages the Azure application resources recorded in the actual
+architecture inventory. Neon database ownership, approved recipient selection,
+private secret upload, GitHub environment settings and budget review remain
+explicit operator prerequisites rather than Terraform-created secrets/accounts.
+
+![Azure application resource group](evidence/m15-azure-resources.png)
+
+The deployed dashboard shows current repository, scan, finding, incident and
+gate summaries over the live HTTPS frontend/API proxy. The visible
+`example.invalid` identity is synthetic.
+
+![Live Secret Shield cloud dashboard](evidence/m15-live-dashboard.png)
+
+The incident capture links HIGH incident 2 to its creation/resolution history
+and one-attempt `SENT` notification without showing the recipient address or
+message body.
+
+![Resolved incident, audit history and sent notification](evidence/m15-notification-incident.png)
+
+Final run `39247034941` published and deployed exact commit
+`8e36c800eecfb338bca68c4654393b37db0eff03`; all required jobs passed and the
+bootstrap publisher stayed disabled.
+
+![Final exact-commit Azure deployment](evidence/final-clean-deploy-run.png)
+
+GHCR publication/deployment, live login/dashboard/scan/incident/audit/gate, real
+ACS success plus failure/retry, bounded/redacted operational logging, reviewed
+rollback/teardown procedures, Neon backup/restore and sanitized screenshots are
+verified.

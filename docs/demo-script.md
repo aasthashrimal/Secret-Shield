@@ -1,27 +1,28 @@
-# Secret Shield demonstration script (draft)
+# Secret Shield demonstration script
 
-Use only synthetic repositories/accounts and sanitized screenshots. Record the
-exact commit SHA, GitHub run URL, backend scan ID, and displayed status before
-the presentation. A live cloud section requires the separate M14/M15 approvals
-and completed checks in [remaining-prerequisites.md](remaining-prerequisites.md).
+Use synthetic accounts and repositories. Keep developer tools closed and never
+show tokens, connection strings, passwords, raw reports, recipient addresses,
+Terraform state, or Key Vault values.
 
-| Scene | Action | Expected evidence | Current status |
+| Scene | Live action | Expected result | Fallback |
 | --- | --- | --- | --- |
-| 1. Scope | Show architecture, local/CI/cloud status and budget | Proposed vs actual Azure resources clearly separated | Actual diagram and 18-resource inventory ready |
-| 2. Login | Sign in with a synthetic owner account | Dashboard loads; another owner's data is inaccessible | Local tests/walkthrough; cloud pending |
-| 3. Clean scan | Trigger/show a clean fixture and trusted main CI run | `CLEAN`, same SHA in GitHub and backend, eligible gate | Main run 39142518443 is clean and built both images; backend reporting pending |
-| 4. Synthetic leak | Show a synthetic credential fixture in a disposable PR | `FINDINGS_DETECTED`; build/publish/deploy skipped | Prior PR #7 gate evidence; new publish/deploy skip proof pending |
-| 5. Scanner error | Show a bounded error fixture | `FAILED`; build/publish/deploy skipped | Prior PR #8 gate evidence; new skip proof pending |
-| 6. Investigation | Open a finding, change an incident, view audit/history | Owner-visible transition and immutable event | Local tests/dashboard; cloud pending |
-| 7. High-risk alert | Trigger an approved synthetic high-risk event | Outbox status, real ACS delivery and failure/retry evidence | Fake-provider verified; real delivery pending |
-| 8. Azure delivery | Show exact SHA image, live URL, Key Vault/identity and health | Deployed commit matches clean reported workflow | Pending separate approvals and M15 deployment |
-| 9. Operations | Explain backup, rollback and outage fallback | Restore/rollback test, sanitized logs, cost/retention decision | Guide drafted; live rehearsal pending |
+| 1. Scope | Show the [actual architecture](azure-architecture-actual.md) | Explain Spring, React, Neon, GitHub Actions, Azure, Key Vault and ACS | `m15-azure-resources.png` |
+| 2. Login | Sign in with the synthetic owner | HTTPS dashboard loads | `m11-login.png`, `m15-live-dashboard.png` |
+| 3. Clean delivery | Open run `39247034941` | Scan/build/release/publish/deploy pass for `8e36c800...`; bootstrap skips | `final-clean-deploy-run.png` |
+| 4. Finding | Open run `39245401264`, then repository 5/scan 9 | Gate fails; downstream jobs skip; one LOW sanitized finding appears | `m12-finding-blocked-run.png`, `m12-finding-dashboard.png` |
+| 5. Scanner error | Open run `39056726283` | Gate fails closed and downstream work skips | `m12-scanner-error-run.png` |
+| 6. Investigation | Open repository 4/incident 2 | HIGH incident is RESOLVED with creation/resolution history; gate stays blocked | `m15-notification-incident.png` |
+| 7. Alert | Show incident 2 notifications | `SENT`, attempts 1; no recipient/body displayed | `m15-notification-incident.png` |
+| 8. Azure | Show resource group and live dashboard | Reviewed resources exist and app works over HTTPS | `m15-azure-resources.png`, `m15-live-dashboard.png` |
+| 9. Operations | Explain logs, restore, rollback and teardown | Recovery/retention decisions are clear without destructive action | [Deployment guide](deployment-guide.md) |
 
-For each scene, keep a fallback recording or screenshot after the real check
-passes. Do not use a recording as proof of a check that has not happened.
-If Azure is unavailable during the presentation, show the local Compose app
-and accurately label the cloud section as unavailable. Never expose tokens,
-database passwords, raw scanner output, ACS keys, or recipient addresses on
-screen. Slides follow the nine scenes above in
-[presentation-outline.md](presentation-outline.md). Finalize them with actual
-evidence and rehearse with the teammate before checking M16.4/M16.5.
+## Rehearsal record
+
+On 19 October 2026 the owner completed login, overview, scan 9, incident 2 with
+notification/history, logout/relogin, final GitHub run, and Azure resource group.
+All seven checks passed. Deployment identity was run `39247034941`, commit
+`8e36c800eecfb338bca68c4654393b37db0eff03`.
+
+If Azure is unavailable, use the reviewed screenshots and local Compose. State
+that cloud service is temporarily unavailable; do not present fallback media as
+a new live check.

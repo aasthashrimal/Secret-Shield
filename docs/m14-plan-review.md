@@ -1,9 +1,11 @@
 # M14 Azure plan review — 18 October 2026
 
 Target: enabled **Azure for Students** subscription, **Central India**, with a
-verified **USD 20 monthly subscription budget** and actual-cost email alerts at
-50%, 80%, and 100%. The portal showed **$9,599 available credit** with an
-expiry of **15 November 2026**. Budget alerts notify; they do not stop usage.
+verified monthly subscription budget and actual-cost email alerts at 50%, 80%,
+and 100%. The Education Hub display rechecked on 19 October 2026 showed
+**₹9,599 available credit**, **393 days remaining**, expiry on
+**15 November 2027**, and **₹24.07 October cost**. Budget amounts use the
+subscription billing currency; alerts notify and do not stop usage.
 The website's availability after that date depends on a successful student
 renewal or another active subscription/payment arrangement.
 
@@ -35,8 +37,8 @@ PostgreSQL server or Azure Container Registry is in this plan.**
 
 The Central India retail estimate for B1 is **USD 13.14 per 730 hours**.
 State storage, Key Vault transactions, communication/email usage, bandwidth,
-and other Azure usage are additional. The remaining margin under USD 20 is
-small; this is an estimate, not a spending limit.
+and other Azure usage are additional. Compare this USD retail estimate with the
+portal's current INR billing view; it is not a spending limit.
 
 The two App Services initially use Microsoft's public sample image. Applying
 this M14 plan creates the cloud foundation but **does not publish Secret

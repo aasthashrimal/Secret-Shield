@@ -70,8 +70,10 @@ provisioning path.
 ## Cost and availability
 
 The user selected the **Azure for Students** subscription in **Central India**
-and a **USD 20/month budget**. Their portal showed **$9,599 available credit,
-expiring 15 November 2026**. That is the portal's displayed amount, not a
+and configured a monthly Cost Management budget with 50%, 80%, and 100% alerts.
+The Education Hub display rechecked on 19 October 2026 showed **₹9,599 available
+credit, 393 days remaining, and expiry on 15 November 2027**. Budget amounts use
+the subscription billing currency. The displayed credit is not a
 renewal guarantee. Microsoft's [Azure for Students FAQ](https://learn.microsoft.com/en-us/azure/education-hub/faq)
 says renewal requires eligible student status or a change to pay-as-you-go;
 the live link may stop when the credit expires unless the subscription is
@@ -110,8 +112,9 @@ alerts send notifications but [do not stop resources](https://learn.microsoft.co
 ## Inputs, state, and security
 
 Before a live application apply: refresh Azure CLI login, verify the
-subscription and credit status, and review the saved plan. A USD 20 monthly
-subscription budget with 50%, 80%, and 100% email alerts is active. The
+subscription and credit status, and review the saved plan. A monthly subscription
+budget with 50%, 80%, and 100% email alerts is active; verify its amount against
+the portal's current billing currency before relying on it. The
 protected Blob state account lives in a
 separate resource group so a change to the application stack cannot erase
 its own state. Use Entra authentication, `Storage Blob Data Contributor` for
