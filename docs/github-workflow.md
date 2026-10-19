@@ -106,6 +106,13 @@ Live repository record 4 contained exactly one matching scan (ID 8), attempt 1,
 `CI_PUSH`, Gitleaks 8.30.0, `CLEAN`, zero findings, a machine audit event and an
 `ALLOW/CLEAN` gate. PRs #13, #14, #16 and #17 passed scan/build while every
 release/deployment job skipped; unsafe PR #15 ran only the failing scan gate.
-This verifies trusted clean reporting and the secret-free PR path. M12.3 still
-needs one finding-bearing trusted run in a disposable repository; sanitized
+Private disposable-repository run
+[`39245401264`](https://github.com/aasthashrimal/Secret-Shield-M12-Evidence/actions/runs/39245401264)
+reported commit `563c96d876ea2dd7b4ab27b72e4921d82e42928b` exactly once as
+scan 9 in live repository record 5. The stored finding contains only rule
+`synthetic-low`, path `m12-trusted-finding-fixture.txt`, line 2, and LOW
+severity. The gate failed and every build, release, publication and deployment
+job skipped. The raw report was never uploaded as an artifact, and the
+disposable repository's Actions secret and variables were removed afterward.
+This completes trusted clean and finding-bearing reporting evidence; sanitized
 screenshots remain M12.6 presentation evidence.
