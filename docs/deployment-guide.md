@@ -6,7 +6,8 @@ the database remains on Neon. Exact-commit GHCR images are public and trusted
 `main` pushes deploy both applications through the protected `azure-dev`
 environment. Run `39199309614` deployed commit
 `9378f1a41c8058766030f2dba4b0bae0ae58a1f7`; backend, frontend, and proxy
-health checks passed. The student credit display expires **15 November 2026**;
+health checks passed. The Education Hub display checked on 19 October 2026
+showed **₹9,599 available credit** and expiry on **15 November 2027**;
 check renewal before promising a permanent GitHub website link. The configured
 budget sends alerts but does not shut down billable resources.
 

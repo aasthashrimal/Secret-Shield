@@ -4,9 +4,10 @@ Run from the repository root. These instructions create billable Azure resources
 only after the plan is reviewed and the subscription/budget are approved. The
 M13 Compose stack is independent; it does not need to be stopped.
 
-**Current M14 status (18 October 2026):** The USD 20/month subscription budget
-with 50%, 80%, and 100% actual-cost alerts is verified. The portal showed
-$9,599 credit expiring 15 November 2026. The state resource group
+**Current M14 status (updated 19 October 2026):** A monthly subscription budget
+with 50%, 80%, and 100% actual-cost alerts is configured. The Education Hub
+display showed ₹9,599 credit, 393 days remaining, expiry on 15 November 2027,
+and ₹24.07 October cost. The state resource group
 `rg-secretshield-tfstate`, account `sstfzboc5k`, and private `tfstate`
 container have been created and secured; do not recreate them. Remote-backend
 `terraform init` succeeded. The approved 18-resource application plan has now
@@ -16,8 +17,8 @@ both web apps currently show public placeholder pages. See the
 
 1. In the [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/),
    price the region/SKUs. The ongoing Neon/GHCR variant starts with a B1 App
-   Service plan estimated at USD 13.14/month in Central India; the user's cap
-   is USD 20/month, leaving only a small margin for other Azure usage. Sign in
+   Service plan estimated at USD 13.14/month in Central India. Compare that USD
+   retail estimate with the portal's INR billing view before applying. Sign in
    with `az login`
    and confirm the target with `az account show --query '{id:id,name:name}'`.
    Select the subscription with `az account set --subscription '<subscription-id>'`.
@@ -36,14 +37,15 @@ both web apps currently show public placeholder pages. See the
    Network, Key Vault, Managed Identity, and Storage providers were registered.
 2. Set a budget alert in the Azure portal: open **Subscriptions**, select
    **Azure for Students**, then **Cost Management > Budgets > Add**. Name it
-   `secret-shield-monthly`, choose **Monthly**, and set the amount to **USD 20**
-   (or the portal's equivalent if it displays another currency). Add **Actual
+   `secret-shield-monthly`, choose **Monthly**, and set the approved amount in
+   the subscription's displayed billing currency. Add **Actual
    cost** alerts at 50%, 80%, and 100% to an email address you check. Review
    the scope and save. The [Microsoft budget guide](https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/tutorial-acm-create-budgets)
    has the current portal screens. Budget alerts do **not** stop resources;
    review Cost Analysis regularly. Confirm the currency of the displayed
-   credit and its renewal/expiry date in the portal. The verified credit
-   display is $9,599 expiring 15 November 2026; renewal is not automatic.
+   credit and its renewal/expiry date in the portal. On 19 October 2026 the
+   verified display was ₹9,599, 393 days remaining, expiring 15 November 2027;
+   renewal is not automatic.
 3. Already completed for this project. The separate resource group
    `rg-secretshield-tfstate` contains StorageV2 account `sstfzboc5k` and a
    private `tfstate` container. The account requires HTTPS/TLS 1.2, disables

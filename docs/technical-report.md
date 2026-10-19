@@ -73,8 +73,10 @@ operations. M16 records final tests, audit and demonstration evidence.
 
 The teammate was unavailable, so collaborator workflow and second-machine
 reproduction remain deferred. The private evidence repository is retained. The
-live site depends on Azure, Neon and ACS. Student credit expires 15 November
-2026; budget alerts notify but do not stop spending.
+live site depends on Azure, Neon and ACS. The Education Hub display checked on
+19 October 2026 showed ₹9,599 available credit, 393 days remaining, expiry on
+15 November 2027, and ₹24.07 October cost. Budget alerts notify but do not stop
+spending.
 
 Resources remain live through the presentation. No rollback, database overwrite
 or Terraform destroy was performed. Any teardown must preserve evidence/data
