@@ -57,5 +57,9 @@ jwt:
 server:
   port: 8080
 
+logging:
+  level:
+    org.flywaydb.core.FlywayExecutor: WARN
+
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}

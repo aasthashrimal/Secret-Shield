@@ -209,17 +209,31 @@ resource "azurerm_linux_web_app" "backend" {
       docker_registry_url = local.registry_url
     }
   }
+  logs {
+    application_logs {
+      file_system_level = "Information"
+    }
+    http_logs {
+      file_system {
+        retention_in_days = 3
+        retention_in_mb   = 35
+      }
+    }
+    detailed_error_messages = false
+    failed_request_tracing  = false
+  }
   app_settings = merge({
-    WEBSITES_PORT                = "8080"
-    SPRING_PROFILES_ACTIVE       = "cloud"
-    DB_URL                       = var.database_source == "azure" ? "jdbc:postgresql://${azurerm_postgresql_flexible_server.app[0].fqdn}:5432/${azurerm_postgresql_flexible_server_database.app[0].name}?sslmode=require" : local.secret_ref["db-url"]
-    DB_USERNAME                  = var.database_source == "azure" ? var.app_db_login : local.secret_ref["db-username"]
-    DB_PASSWORD                  = var.database_source == "azure" ? local.secret_ref["db-app-password"] : local.secret_ref["db-password"]
-    JWT_SECRET                   = local.secret_ref["jwt-secret"]
-    FRONTEND_ORIGIN              = local.frontend_url
-    NOTIFICATION_PROVIDER        = var.notification_provider
-    NOTIFICATION_SCHEDULED       = var.notification_provider == "disabled" ? "false" : "true"
-    NOTIFICATION_PUBLIC_BASE_URL = local.frontend_url
+    WEBSITES_PORT                       = "8080"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    SPRING_PROFILES_ACTIVE              = "cloud"
+    DB_URL                              = var.database_source == "azure" ? "jdbc:postgresql://${azurerm_postgresql_flexible_server.app[0].fqdn}:5432/${azurerm_postgresql_flexible_server_database.app[0].name}?sslmode=require" : local.secret_ref["db-url"]
+    DB_USERNAME                         = var.database_source == "azure" ? var.app_db_login : local.secret_ref["db-username"]
+    DB_PASSWORD                         = var.database_source == "azure" ? local.secret_ref["db-app-password"] : local.secret_ref["db-password"]
+    JWT_SECRET                          = local.secret_ref["jwt-secret"]
+    FRONTEND_ORIGIN                     = local.frontend_url
+    NOTIFICATION_PROVIDER               = var.notification_provider
+    NOTIFICATION_SCHEDULED              = var.notification_provider == "disabled" ? "false" : "true"
+    NOTIFICATION_PUBLIC_BASE_URL        = local.frontend_url
     }, var.notification_provider == "azure" ? {
     NOTIFICATION_RECIPIENTS = local.secret_ref["notification-recipients"]
     ACS_CONNECTION_STRING   = local.secret_ref["acs-connection-string"]
@@ -267,9 +281,23 @@ resource "azurerm_linux_web_app" "frontend" {
       docker_registry_url = local.registry_url
     }
   }
+  logs {
+    application_logs {
+      file_system_level = "Information"
+    }
+    http_logs {
+      file_system {
+        retention_in_days = 3
+        retention_in_mb   = 35
+      }
+    }
+    detailed_error_messages = false
+    failed_request_tracing  = false
+  }
   app_settings = {
-    WEBSITES_PORT  = "80"
-    BACKEND_ORIGIN = local.backend_url
+    WEBSITES_PORT                       = "80"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    BACKEND_ORIGIN                      = local.backend_url
   }
   tags       = var.tags
   depends_on = [azurerm_role_assignment.image_pull]
