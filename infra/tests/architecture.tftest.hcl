@@ -40,7 +40,7 @@ run "secure_default_plan" {
   }
 
   assert {
-    condition     = azurerm_federated_identity_credential.github_deploy.subject == "repo:aasthashrimal/Secret-Shield:environment:azure-dev"
+    condition     = azurerm_federated_identity_credential.github_deploy.subject == "repo:aasthashrimal@213026276/Secret-Shield@1413171705:environment:azure-dev"
     error_message = "Deployment federation must be scoped to the protected GitHub environment."
   }
 

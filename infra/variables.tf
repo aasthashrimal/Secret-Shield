@@ -106,6 +106,16 @@ variable "github_repository" {
   default     = "aasthashrimal/Secret-Shield"
 }
 
+variable "github_oidc_repository_subject" {
+  type        = string
+  description = "Immutable GitHub OIDC repository subject prefix, including owner and repository IDs."
+  default     = "repo:aasthashrimal@213026276/Secret-Shield@1413171705"
+  validation {
+    condition     = can(regex("^repo:[A-Za-z0-9_.-]+@[0-9]+/[A-Za-z0-9_.-]+@[0-9]+$", var.github_oidc_repository_subject))
+    error_message = "Use GitHub's immutable repo:owner@ID/repository@ID OIDC subject prefix."
+  }
+}
+
 variable "github_environment" {
   type        = string
   description = "Protected GitHub environment name used by the M15 deployment job."

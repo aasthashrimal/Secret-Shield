@@ -5,6 +5,9 @@ name_prefix     = "secretshield-dev"
 unique_suffix   = "abcd12"
 acs_data_location = "India"
 
+# Match the repository's immutable GitHub Actions OIDC subject customization.
+# github_oidc_repository_subject = "repo:<owner>@<owner-id>/<repository>@<repository-id>"
+
 # Ongoing site (default): one B1 plan, existing Neon, public GHCR images after M15.
 # app_service_sku = "B1"
 # database_source = "neon"
