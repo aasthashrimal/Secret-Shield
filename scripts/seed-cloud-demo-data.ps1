@@ -25,7 +25,12 @@ function New-Finding([string]$Rule, [string]$Path, [int]$Line) {
     }
 }
 
-function New-Scan([string]$RunId, [string]$Status, [array]$Findings, [string]$FailureCode = $null) {
+function New-Scan([string]$RunId, [string]$Status, [array]$Findings, $FailureCode = $null) {
+    $normalizedFailure = if ([string]::IsNullOrWhiteSpace([string]$FailureCode)) {
+        $null
+    } else {
+        [string]$FailureCode
+    }
     return @{
         runId         = $RunId
         runAttempt    = 1
@@ -34,7 +39,7 @@ function New-Scan([string]$RunId, [string]$Status, [array]$Findings, [string]$Fa
         trigger       = 'CI_PUSH'
         scannerVersion = '8.30.0'
         status        = $Status
-        failureCode   = $FailureCode
+        failureCode   = $normalizedFailure
         findings      = @($Findings)
     }
 }
@@ -83,6 +88,19 @@ $plans = @(
         deactivate = $true
     }
 )
+
+foreach ($scan in @($plans | ForEach-Object { $_.scans })) {
+    $roundTrip = $scan | ConvertTo-Json -Depth 6 -Compress | ConvertFrom-Json
+    $valid = switch ($roundTrip.status) {
+        'CLEAN' { $roundTrip.findings.Count -eq 0 -and $null -eq $roundTrip.failureCode }
+        'FINDINGS_DETECTED' { $roundTrip.findings.Count -gt 0 -and $null -eq $roundTrip.failureCode }
+        'FAILED' { $roundTrip.findings.Count -eq 0 -and -not [string]::IsNullOrWhiteSpace($roundTrip.failureCode) }
+        default { $false }
+    }
+    if (-not $valid) {
+        throw "Invalid synthetic payload for $($roundTrip.runId)."
+    }
+}
 
 $findingCount = ($plans | ForEach-Object { $_.scans } | ForEach-Object { $_.findings }).Count
 [pscustomobject]@{
