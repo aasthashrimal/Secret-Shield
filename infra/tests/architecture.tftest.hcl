@@ -64,6 +64,22 @@ run "scanned_image_plan" {
   }
 
   assert {
+    condition = (
+      azurerm_linux_web_app.backend.logs[0].application_logs[0].file_system_level == "Information" &&
+      azurerm_linux_web_app.frontend.logs[0].application_logs[0].file_system_level == "Information" &&
+      azurerm_linux_web_app.backend.logs[0].http_logs[0].file_system[0].retention_in_days == 3 &&
+      azurerm_linux_web_app.frontend.logs[0].http_logs[0].file_system[0].retention_in_days == 3 &&
+      azurerm_linux_web_app.backend.logs[0].http_logs[0].file_system[0].retention_in_mb == 35 &&
+      azurerm_linux_web_app.frontend.logs[0].http_logs[0].file_system[0].retention_in_mb == 35 &&
+      !azurerm_linux_web_app.backend.logs[0].detailed_error_messages &&
+      !azurerm_linux_web_app.frontend.logs[0].detailed_error_messages &&
+      !azurerm_linux_web_app.backend.logs[0].failed_request_tracing &&
+      !azurerm_linux_web_app.frontend.logs[0].failed_request_tracing
+    )
+    error_message = "Operational logs must be bounded and detailed error tracing must stay disabled."
+  }
+
+  assert {
     condition     = azurerm_linux_web_app.backend.site_config[0].application_stack[0].docker_registry_url == "https://ghcr.io" && !azurerm_linux_web_app.backend.site_config[0].container_registry_use_managed_identity
     error_message = "Public GHCR images should not require Azure registry credentials."
   }
