@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: secret-shield-api-zboc5k
+    runtime: docker
+    plan: free
+    region: ohio
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health/live
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: SERVER_PORT
+        value: "10000"
+      - key: SPRING_PROFILES_ACTIVE
+        value: cloud
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://secret-shield-zboc5k.onrender.com
+      - key: NOTIFICATION_PROVIDER
+        value: disabled
+      - key: NOTIFICATION_SCHEDULED
+        value: "false"
+      - key: NOTIFICATION_PUBLIC_BASE_URL
+        value: https://secret-shield-zboc5k.onrender.com
+      - key: ADMIN_BOOTSTRAP_ENABLED
+        value: "false"
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC -XX:ActiveProcessorCount=1
+
+  - type: web
+    name: secret-shield-zboc5k
+    runtime: static
+    branch: main
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: VITE_API_BASE
+        value: https://secret-shield-api-zboc5k.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer

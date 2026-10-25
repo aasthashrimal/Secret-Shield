@@ -1,7 +1,13 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { createApi, ApiError } from './api';
+import { createApi, ApiError, apiUrl } from './api';
 
 afterEach(() => vi.unstubAllGlobals());
+
+it('uses relative API paths locally and an explicit HTTPS base for static hosting', () => {
+  expect(apiUrl('/api/health/live', '')).toBe('/api/health/live');
+  expect(apiUrl('/api/health/live', 'https://api.example.invalid/'))
+    .toBe('https://api.example.invalid/api/health/live');
+});
 
 it('sends the in-memory token and expires the session on 401', async () => {
   const expired = vi.fn();
