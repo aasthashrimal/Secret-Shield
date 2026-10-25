@@ -4,6 +4,11 @@ export class ApiError extends Error {
   }
 }
 
+export function apiUrl(path: string, configuredBase = import.meta.env.VITE_API_BASE ?? ''): string {
+  const base = configuredBase.trim().replace(/\/+$/, '');
+  return `${base}${path}`;
+}
+
 export function createApi(getToken: () => string | null, onUnauthorized: () => void) {
   return async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const headers = new Headers(options.headers);
@@ -12,7 +17,7 @@ export function createApi(getToken: () => string | null, onUnauthorized: () => v
     if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     let response: Response;
     try {
-      response = await fetch(path, { ...options, headers });
+      response = await fetch(apiUrl(path), { ...options, headers });
     } catch {
       throw new ApiError(0, 'NETWORK_ERROR');
     }
