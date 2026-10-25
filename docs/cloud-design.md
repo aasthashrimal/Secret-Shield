@@ -1,5 +1,9 @@
 # Azure infrastructure design (M14)
 
+> Historical design evidence. The application stack and separate Terraform-state
+> storage were retired on 25 October 2026 after the verified Render migration.
+> Recreating them would require a new cost review and explicit approval.
+
 M14 prepares two configurations for the same public website. The **ongoing**
 configuration keeps the backend and frontend on one Linux App Service B1 plan,
 uses the existing Neon database, and pulls public, exact-commit images from

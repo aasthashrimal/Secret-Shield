@@ -67,8 +67,8 @@ screenshots are retained under `docs/evidence/`.
 After the presentation, the application migrated to free Render hosting. A fresh
 private Neon dump restored successfully before an explicitly approved Terraform
 plan deleted exactly the 18 application resources on 25 October 2026. The Azure
-application resource group is gone; protected remote state and historical evidence
-remain for reproducibility.
+application resource group and remote-state storage account are gone; a private
+final empty-state backup and historical evidence remain for reproducibility.
 
 ## Key documentation
 
