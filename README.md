@@ -4,12 +4,24 @@ Secret Shield is a deployed DevSecOps project for detecting exposed credentials,
 blocking unsafe deployments, and tracking findings and incidents. It implements
 authentication and roles, owner-scoped repositories, scans and sanitized findings,
 incident and audit history, a deployment gate, high-risk email notification, a
-React dashboard, protected GitHub CI/CD, containers, and Azure deployment.
+React dashboard, protected GitHub CI/CD, containers, Terraform-provisioned Azure
+evidence, and a free Render portfolio deployment backed by Neon PostgreSQL.
 
-Release `v1.0.0` and the final post-release `main` workflow passed the secret gate,
-backend/frontend checks, exact-commit publication, Azure deployment, and live health
-checks. Member 1 completed the project under the solo scope; teammate access/setup
-tasks and independent second-machine reproduction remain explicitly deferred.
+Release `v1.0.0` and the final Azure workflow passed the secret gate,
+backend/frontend checks, exact-commit publication, deployment, and live health
+checks. After the presentation, the public application moved to Render and the
+18 Terraform-managed Azure application resources were safely retired on
+25 October 2026. Historical Azure evidence remains in this repository.
+
+## Live portfolio deployment
+
+- Frontend: <https://secret-shield-zboc5k.onrender.com>
+- Backend liveness: <https://secret-shield-api-zboc5k.onrender.com/api/health/live>
+- Database: existing managed Neon PostgreSQL
+
+The Render backend uses the free tier and may sleep after inactivity, so its first
+request can take about a minute. Azure Communication Services email is not active
+on the portfolio deployment; its successful delivery evidence is retained below.
 
 Use Java 21, Windows PowerShell, the checked-in Maven wrapper, and PostgreSQL server
 tools. See [local setup](docs/local-setup.md) for private environment values and
@@ -55,21 +67,19 @@ Open `http://localhost:5173`. Use `docker compose --env-file .env.compose down`
 to stop while keeping database data. See the [Docker setup guide](docs/docker-setup.md)
 for scanner fixtures, persistence checks, and troubleshooting.
 
-M14 Azure infrastructure is in `infra/`. Terraform formatting, validation,
-and three mocked plan tests passed. A billing-currency budget alert and protected
-Blob state account are active. The approved 18-resource application plan was
-applied in two passes after a provider-specific VNet setting correction. Secret
-Shield is deployed at
-<https://secretshield-dev-zboc5k-web.azurewebsites.net>; the backend, frontend
-proxy, browser session, CI reporting, exact-commit release, notification, logging,
-and recovery paths have been verified. Approved private values are stored in Key
-Vault, and the application uses the existing Neon database. Azure PostgreSQL and
-ACR remain optional. Review the
+M14 Azure infrastructure is reproducible from `infra/`. Terraform formatting,
+validation, mocked plan tests, the approved 18-resource apply, and the final
+18-resource destroy all passed. The deployment verified App Service, Key Vault,
+managed identity/OIDC, networking, ACS Email, Blob-backed Terraform state, GHCR,
+Neon, logging, notification, backup, and recovery paths. The application resources
+were intentionally deleted after a verified Neon backup and successful Render
+migration; the protected Terraform state and sanitized evidence remain. Review the
 [actual Azure inventory](docs/azure-architecture-actual.md),
 [M14 apply review](docs/m14-plan-review.md), and
 [Terraform setup](docs/azure-terraform-setup.md). The
-[deployment guide](docs/deployment-guide.md) describes the active protected
-publish/deploy workflow and its operational controls.
+[deployment guide](docs/deployment-guide.md) preserves the historical protected
+Azure workflow and its operational controls. The
+[Render migration record](docs/render-migration.md) describes current hosting.
 
 - [Module checklist](MODULE_TODO.md)
 - [API contract and planned DTOs](docs/api-contract.md)
@@ -89,8 +99,5 @@ publish/deploy workflow and its operational controls.
 - [Terraform operator steps](docs/azure-terraform-setup.md)
 - [Final acceptance evidence](docs/acceptance-checklist.md)
 - [Final deliverable security audit](docs/security-audit.md)
-- [Remaining cloud prerequisites](docs/remaining-prerequisites.md)
 - [Technical report](docs/technical-report.md)
-- [Demonstration script](docs/demo-script.md)
-- [Professor demonstration guide](docs/professor-demo-guide.md)
-- [Page/documentation review checklist](docs/page-review-checklist.md)
+- [Current Render hosting and Azure retirement](docs/render-migration.md)

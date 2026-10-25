@@ -1,4 +1,8 @@
-# Azure architecture and inventory (observed 18 October 2026)
+# Historical Azure architecture and inventory (observed 18 October 2026)
+
+> The verified 18-resource application stack was retired on 25 October 2026
+> after migration to Render. Sanitized evidence and the separate protected
+> Terraform state remain.
 
 This diagram records the **applied M14 infrastructure**, verified against
 Terraform state and Azure resource reads. Both public URLs returned HTTP 200

@@ -1,4 +1,8 @@
-# M14 Terraform operator steps (PowerShell)
+# Historical M14 Terraform operator steps (PowerShell)
+
+> The application stack was destroyed from an explicitly reviewed saved plan on
+> 25 October 2026. Do not apply this configuration unless a new paid Azure
+> deployment is intentionally approved and cost-reviewed.
 
 Run from the repository root. These instructions create billable Azure resources
 only after the plan is reviewed and the subscription/budget are approved. The
