@@ -84,8 +84,9 @@ screenshots.
 On 25 October 2026, a private Neon dump passed a disposable restore test before an
 explicitly approved Terraform plan deleted exactly 18 Azure application resources.
 The Azure application resource group is gone, while Neon data, the private backup,
-protected Terraform state, source, GHCR images, and sanitized historical evidence
-remain. Current hosting therefore does not depend on the retired Azure resources.
+private final empty-state backup, source, GHCR images, and sanitized historical
+evidence remain. The Azure state storage account was then separately deleted.
+Current hosting therefore does not depend on any active Azure resource group.
 
 ## Future work
 

@@ -58,5 +58,6 @@ Before teardown, a fresh private Neon dump was restored into disposable PostgreS
 Terraform plan contained 0 creates, 0 updates and exactly 18 destroys. Its approved
 apply completed successfully; the application resource group no longer exists and
 the remote Terraform state contains zero managed application resources. The
-separate protected state storage, Azure architecture, run links, and sanitized
-screenshots remain as historical evidence.
+private final empty-state backup, Azure architecture, run links, and sanitized
+screenshots remain as historical evidence. After separate approval, the protected
+Azure state storage account and its resource group were also deleted.

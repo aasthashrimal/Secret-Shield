@@ -73,7 +73,8 @@ validation, mocked plan tests, the approved 18-resource apply, and the final
 managed identity/OIDC, networking, ACS Email, Blob-backed Terraform state, GHCR,
 Neon, logging, notification, backup, and recovery paths. The application resources
 were intentionally deleted after a verified Neon backup and successful Render
-migration; the protected Terraform state and sanitized evidence remain. Review the
+migration; a private final empty-state backup and sanitized evidence remain, while
+the Azure state storage account was also deleted. Review the
 [actual Azure inventory](docs/azure-architecture-actual.md),
 [M14 apply review](docs/m14-plan-review.md), and
 [Terraform setup](docs/azure-terraform-setup.md). The
