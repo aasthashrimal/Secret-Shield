@@ -1,6 +1,8 @@
 # Secret Shield technical report
 
-**Verified 19 October 2026:** Secret Shield is implemented, tested and deployed.
+**Verified 25 October 2026:** Secret Shield is implemented, tested and publicly
+available on Render with its existing Neon PostgreSQL data. The original Azure
+deployment was verified for the presentation and then intentionally retired.
 Final run `39247034941` published and deployed exact commit
 `8e36c800eecfb338bca68c4654393b37db0eff03`. Backend, frontend and the
 same-origin API proxy returned HTTP 200.
@@ -16,15 +18,17 @@ response workflow but does not rotate provider credentials automatically.
 ## Architecture and modules
 
 The system combines a Spring Boot API, PostgreSQL/Flyway data layer, React/Nginx
-dashboard, pinned Gitleaks scanner, GitHub Actions gate, Docker Compose, and an
-Azure deployment. JWT and DEVELOPER/ADMIN authorization protect owner-scoped
+dashboard, pinned Gitleaks scanner, GitHub Actions gate, Docker Compose, and
+Terraform-managed cloud infrastructure. JWT and DEVELOPER/ADMIN authorization protect owner-scoped
 resources. Sanitization removes raw match values before persistence, HTTP, logs
 or artifacts. Findings link to auditable incidents; HIGH/CRITICAL events use a
 bounded retryable notification outbox.
 
-Production uses two Linux App Services on one B1 plan, Key Vault references,
-managed identities, VNet integration, ACS Email, protected Terraform state, and
-the existing TLS Neon database. See the [data model](data-model.md),
+The verified presentation deployment used two Linux App Services on one B1 plan,
+Key Vault references, managed identities, VNet integration, ACS Email, protected
+Terraform state, and the existing TLS Neon database. The current portfolio site
+uses a free Render Docker backend and static frontend with the same Neon database.
+See the [data model](data-model.md),
 [actual architecture](azure-architecture-actual.md), and
 [deployment guide](deployment-guide.md).
 
@@ -72,15 +76,16 @@ operations. M16 records final tests, audit and demonstration evidence.
 ## Limitations and retention
 
 The teammate was unavailable, so collaborator workflow and second-machine
-reproduction remain deferred. The private evidence repository is retained. The
-live site depends on Azure, Neon and ACS. The Education Hub display checked on
-19 October 2026 showed ₹9,599 available credit, 393 days remaining, expiry on
-15 November 2027, and ₹24.07 October cost. Budget alerts notify but do not stop
-spending.
+reproduction remain deferred. Render's free backend sleeps after inactivity and
+may take about a minute to wake. ACS email is disabled on the current portfolio
+deployment; the verified Azure delivery evidence remains in the report and
+screenshots.
 
-Resources remain live through the presentation. No rollback, database overwrite
-or Terraform destroy was performed. Any teardown must preserve evidence/data
-and receive separate approval.
+On 25 October 2026, a private Neon dump passed a disposable restore test before an
+explicitly approved Terraform plan deleted exactly 18 Azure application resources.
+The Azure application resource group is gone, while Neon data, the private backup,
+protected Terraform state, source, GHCR images, and sanitized historical evidence
+remain. Current hosting therefore does not depend on the retired Azure resources.
 
 ## Future work
 

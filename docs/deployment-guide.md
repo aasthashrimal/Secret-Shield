@@ -1,6 +1,11 @@
-# Azure deployment and operations
+# Historical Azure deployment and operations
 
-The approved [M14 infrastructure](azure-architecture-actual.md) now has two
+> Retired 25 October 2026 after the Render migration passed. The approved
+> Terraform destroy removed all 18 application resources. This guide is retained
+> as reproducible DevOps evidence; its Azure URLs and activation steps are not the
+> current hosting path. See [current Render hosting](render-migration.md).
+
+The approved [M14 infrastructure](azure-architecture-actual.md) originally had two
 Linux App Services on one B1 plan in Central India, Key Vault, and ACS Email;
 the database remains on Neon. Exact-commit GHCR images are public and trusted
 `main` pushes deploy both applications through the protected `azure-dev`
@@ -16,7 +21,7 @@ budget sends alerts but does not shut down billable resources.
 1. **Completed:** the approved 18-resource M14 plan was applied and its
    [actual inventory](azure-architecture-actual.md) verified. Do not reapply
    `infra/m14.tfplan`; inspect a fresh plan before any future infrastructure
-   change. Both apps currently run public exact-SHA GHCR containers.
+   change. Both apps then ran public exact-SHA GHCR containers.
 2. **Secrets completed:** the private Neon JDBC URL with
    TLS, username, password, and JWT secret passed local validation and were
    uploaded after separate approval. Azure reports all four Key Vault app

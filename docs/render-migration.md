@@ -1,4 +1,8 @@
-# Free portfolio hosting migration
+# Free portfolio hosting and Azure retirement
+
+**Completed 25 October 2026.** Both Render services returned HTTP 200, browser
+login/dashboard/logout passed against the existing Neon data, GitHub CI reporting
+was switched to the Render API, and the Azure deployment flag was disabled.
 
 The post-presentation target keeps the existing Neon PostgreSQL database and
 moves the public application from paid Azure App Service to Render:
@@ -22,8 +26,8 @@ source:
 - `DB_URL`: the existing Neon JDBC URL
 - `DB_USERNAME`: the existing Neon role
 - `DB_PASSWORD`: the existing Neon password
-- `JWT_SECRET`: the existing signing secret, retained so existing tokens behave
-  consistently during the migration
+- `JWT_SECRET`: a separately generated signing secret; rotate it immediately if
+  it is ever exposed and expect existing sessions to become invalid
 
 Azure Communication Services is intentionally not migrated. Notifications are
 disabled on Render, while existing notification/audit records remain in Neon.
@@ -38,7 +42,8 @@ during wake-up may need one retry.
 
 ## Migration gate
 
-Do not disable or delete Azure until all of these pass on Render:
+The application checks passed before Azure was deleted; the first later trusted
+`main` run provides the final CI-to-Render reporting confirmation:
 
 1. backend `/api/health/live` returns `UP`;
 2. static frontend loads over HTTPS;
@@ -48,7 +53,10 @@ Do not disable or delete Azure until all of these pass on Render:
 6. GitHub CI reports a clean commit to the Render backend;
 7. the Azure publish/deploy switch is disabled before the teardown commit.
 
-Before Azure teardown, create a fresh private Neon dump and retain the existing
-Terraform state securely. Terraform destruction is a separate reviewed action.
-The Azure architecture, verified run links and sanitized screenshots remain as
-historical project evidence after the live resources are removed.
+Before teardown, a fresh private Neon dump was restored into disposable PostgreSQL
+18: nine public tables and nine Flyway migrations were verified. The reviewed saved
+Terraform plan contained 0 creates, 0 updates and exactly 18 destroys. Its approved
+apply completed successfully; the application resource group no longer exists and
+the remote Terraform state contains zero managed application resources. The
+separate protected state storage, Azure architecture, run links, and sanitized
+screenshots remain as historical evidence.

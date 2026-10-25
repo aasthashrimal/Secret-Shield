@@ -10,12 +10,12 @@ tokens, recipient addresses, and Terraform state are excluded.
 | Authentication and roles | Registration, login, logout, JWT, admin and cross-owner negative tests; live browser session passed | Public registration remains enabled for this demonstration deployment |
 | Repositories, scans and findings | Owner-scoped APIs, local scanner fixtures, and sanitized live scans 8/9 | Private disposable evidence repository is retained for review |
 | Incidents, audit and gate | Live incident 2 creation/resolution/history and blocked gate; automated authorization tests | Resolving an incident intentionally does not unblock a finding-bearing commit |
-| Notifications | Live HIGH event verified bounded failure/retry and later one-attempt ACS `SENT` | Delivery depends on ACS and the private recipient mapping |
+| Notifications | Azure-hosted HIGH event verified bounded failure/retry and later one-attempt ACS `SENT` | ACS is historical evidence and is disabled on current Render hosting |
 | Dashboard | Frontend tests/build and live HTTPS login/dashboard/logout/relogin | Focused academic dashboard rather than a provider installation product |
 | GitHub gate | [Clean/finding/error evidence](github-workflow.md), trusted reporting, exact-SHA publication and blocked downstream jobs | Forks scan without backend/cloud secrets and do not claim ingestion |
 | Local containers | Images, Compose stack, proxy, fixture scans and persistence verified in the [Docker guide](docker-setup.md) | Teammate fresh-clone reproduction remains M13.4 |
-| Azure infrastructure | Approved 18-resource apply, protected state, Key Vault references, HTTPS and [actual diagram](azure-architecture-actual.md) | Neon is the separately managed PostgreSQL provider |
-| Cloud operations | Run `39247034941` deployed SHA `8e36c800eecfb338bca68c4654393b37db0eff03`; health, logs, backup restore and procedures verified | Destructive restore, rollback and teardown were correctly not executed |
+| Azure infrastructure | Approved 18-resource apply, protected state, Key Vault references, HTTPS and [actual diagram](azure-architecture-actual.md) | The 18 application resources were retired after the presentation; evidence remains |
+| Cloud operations | Run `39247034941` deployed SHA `8e36c800eecfb338bca68c4654393b37db0eff03`; health, logs and recovery procedures passed; the later Render migration and reviewed Azure teardown also passed | Current free hosting can cold-start and does not provide ACS email |
 | Security audit | [Final audit](security-audit.md) covers Git, files, images, logs, browser evidence, Terraform artifacts and revocation | Historical scanner result is one deliberate removed synthetic fixture |
 | Demonstration | Seven-step live rehearsal passed; sanitized fallbacks are in `docs/evidence/` | Final release tag follows the documentation PR |
 
